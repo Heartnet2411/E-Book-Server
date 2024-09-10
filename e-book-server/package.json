@@ -1,0 +1,31 @@
+{
+  "name": "e-book-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon --inspect index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Heartnet2411/E-Book.git"
+  },
+  "keywords": [
+    "E-book",
+    "forum"
+  ],
+  "author": "Heartnet",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Heartnet2411/E-Book/issues"
+  },
+  "homepage": "https://github.com/Heartnet2411/E-Book#readme",
+  "dependencies": {
+    "express": "^4.20.0",
+    "method-override": "^3.0.0",
+    "morgan": "^1.10.0",
+    "nodemon": "^3.1.4"
+  }
+}
