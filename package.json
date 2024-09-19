@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon --inspect index.js",
+    "start": "nodemon --inspect server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -23,9 +23,13 @@
   },
   "homepage": "https://github.com/Heartnet2411/E-Book#readme",
   "dependencies": {
-    "express": "^4.20.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "e-book-server": "file:",
+    "express": "^4.21.0",
     "method-override": "^3.0.0",
     "morgan": "^1.10.0",
+    "mysql": "^2.18.1",
     "nodemon": "^3.1.4"
   }
 }
