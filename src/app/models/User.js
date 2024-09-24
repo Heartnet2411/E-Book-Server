@@ -1,0 +1,65 @@
+import { DataTypes } from 'sequelize'
+import sequelize from '../../connection/connection.js'
+import bcrypt from 'bcryptjs'
+import RefreshToken from './RefreshToken.js'
+
+// Định nghĩa model User
+const User = sequelize.define(
+    'User',
+    {
+        userId: {
+            type: DataTypes.CHAR(100),
+            primaryKey: true,
+        },
+        gender: {
+            type: DataTypes.BOOLEAN,
+        },
+        roleId: {
+            type: DataTypes.CHAR(100),
+        },
+        firstName: {
+            type: DataTypes.STRING(100),
+            allowNull: false,
+        },
+        lastName: {
+            type: DataTypes.STRING(100),
+            allowNull: false,
+        },
+        dateOfBirth: {
+            type: DataTypes.DATEONLY,
+        },
+        email: {
+            type: DataTypes.STRING(255),
+            allowNull: false,
+        },
+        password: {
+            type: DataTypes.STRING(255),
+            allowNull: false,
+        },
+        phoneNumber: {
+            type: DataTypes.STRING(50),
+        },
+        avatar: {
+            type: DataTypes.STRING(255),
+        },
+        background: {
+            type: DataTypes.STRING(255),
+        },
+        created_at: {
+            type: DataTypes.DATE,
+            defaultValue: DataTypes.NOW,
+        },
+    },
+    {
+        tableName: 'users',
+        timestamps: false,
+    }
+)
+
+// Mã hóa mật khẩu trước khi lưu vào cơ sở dữ liệu
+User.beforeCreate(async (user) => {
+    const salt = await bcrypt.genSalt(10)
+    user.password = await bcrypt.hash(user.password, salt)
+})
+
+export default User
