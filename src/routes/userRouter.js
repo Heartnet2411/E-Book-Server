@@ -2,13 +2,16 @@ import express from 'express'
 const router = express.Router()
 import authController from '../app/controllers/authController.js'
 
-// Endpoint tạo người dùng
+// Tạo người dùng
 router.post('/register', authController.createUser)
 
-// Endpoint đăng nhập
+// Đăng nhập
 router.post('/login', authController.login)
 
 // Endpoint làm mới Access Token
 router.post('/token/refresh', authController.refreshToken)
+
+// Logout
+router.post('/logout', authController.logout)
 
 export default router

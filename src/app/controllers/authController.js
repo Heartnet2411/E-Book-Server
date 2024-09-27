@@ -24,8 +24,14 @@ const generateRefreshToken = async (user) => {
         throw new Error('Token must be a string')
     }
 
-    console.log('re: ', refreshToken)
-    console.log(typeof refreshToken)
+    // Kiểm tra nếu user đã có refresh token
+    const existingToken = await RefreshToken.findOne({
+        where: { userId: user.userId },
+    })
+    if (existingToken) {
+        // Xóa token cũ
+        await RefreshToken.destroy({ where: { userId: user.userId } })
+    }
 
     // Lưu Refresh Token vào cơ sở dữ liệu
     const createdRefreshToken = await RefreshToken.create({
@@ -48,17 +54,22 @@ class authController {
             const user = await User.findOne({ where: { email } })
 
             if (!user) {
-                return res.status(400).json({ message: 'User not found' })
+                return res
+                    .status(400)
+                    .json({ message: 'Không tìm thấy người dùng' })
             }
 
             // Kiểm tra mật khẩu
             const isPasswordValid = await bcrypt.compare(
-                password,
+                password.trim(),
                 user.password
             )
+            console.log(password)
+            console.log(user.password)
+            console.log(isPasswordValid)
 
             if (!isPasswordValid) {
-                return res.status(401).json({ message: 'Invalid password' })
+                return res.status(401).json({ message: 'Mật khẩu không đúng' })
             }
 
             // Tạo Access Token và Refresh Token
@@ -66,6 +77,7 @@ class authController {
             const refreshToken = await generateRefreshToken(user)
 
             res.status(200).json({
+                message: 'Login successfull',
                 accessToken,
                 refreshToken,
             })
@@ -81,7 +93,9 @@ class authController {
             const user = await User.findOne({ where: { email } })
 
             if (user) {
-                return res.status(400).json({ message: 'User has assign' })
+                return res
+                    .status(400)
+                    .json({ message: 'Người dùng đã được đăng ký' })
             }
 
             //tạo id với 1 mã hex ngẫu nhiên
@@ -104,7 +118,12 @@ class authController {
             // Tạo Access Token
             const accessToken = generateAccessToken(newUser)
 
-            res.status(201).json({ user: newUser, accessToken, refreshToken })
+            res.status(201).json({
+                message: 'Register successfull',
+                user: newUser,
+                accessToken,
+                refreshToken,
+            })
         } catch (error) {
             res.status(500).json({ error: error.message })
         }
@@ -142,6 +161,35 @@ class authController {
             })
         } catch (error) {
             res.status(403).json({ message: 'Invalid refresh token', error })
+        }
+    }
+
+    // Hàm logout
+    logout = async (req, res) => {
+        const { token } = req.body
+
+        if (!token) {
+            return res
+                .status(400)
+                .json({ message: 'Refresh token is required' })
+        }
+
+        try {
+            // Xóa Refresh Token khỏi cơ sở dữ liệu
+            const result = await RefreshToken.destroy({
+                where: { token },
+            })
+
+            // Kiểm tra xem token có được xóa không
+            if (result === 0) {
+                return res
+                    .status(404)
+                    .json({ message: 'Refresh token not found' })
+            }
+
+            res.status(200).json({ message: 'Logout successfully' })
+        } catch (error) {
+            res.status(500).json({ message: 'Logout failed', error })
         }
     }
 }

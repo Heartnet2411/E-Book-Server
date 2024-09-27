@@ -21,6 +21,7 @@ const RefreshToken = sequelize.define(
         userId: {
             type: DataTypes.CHAR(100),
             allowNull: false,
+            unique: true,
         },
     },
     {

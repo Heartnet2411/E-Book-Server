@@ -31,6 +31,7 @@ const User = sequelize.define(
         email: {
             type: DataTypes.STRING(255),
             allowNull: false,
+            unique: true,
         },
         password: {
             type: DataTypes.STRING(255),
@@ -58,8 +59,11 @@ const User = sequelize.define(
 
 // Mã hóa mật khẩu trước khi lưu vào cơ sở dữ liệu
 User.beforeCreate(async (user) => {
-    const salt = await bcrypt.genSalt(10)
-    user.password = await bcrypt.hash(user.password, salt)
+    const saltRounds = 10
+    bcrypt.hash(user.password, saltRounds, (err, hash) => {
+        if (err) throw err
+        user.password = hash
+    })
 })
 
 export default User
