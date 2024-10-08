@@ -23,7 +23,7 @@ const startServer = async () => {
         await sequelize.authenticate()
         console.log('Database connected...')
 
-        await sequelize.sync() // Đồng bộ mô hình với cơ sở dữ liệu
+        await sequelize.sync()
 
         app.listen(port, () => {
             console.log(`Server running on port ${port}`)

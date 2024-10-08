@@ -1,12 +1,12 @@
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
-import { User, RefreshToken } from '../models/index.js'
+import { User, RefreshToken, Role } from '../models/index.js'
 import { generateRandomHexId } from '../../utils/index.js'
 
 // Tạo Access Token
 const generateAccessToken = (user) => {
     return jwt.sign(
-        { userId: user.userId, email: user.email },
+        { userId: user.userId, email: user.email, role: user.role.roleName },
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION }
     )
@@ -51,7 +51,10 @@ class authController {
 
         try {
             // Tìm người dùng trong cơ sở dữ liệu
-            const user = await User.findOne({ where: { email } })
+            const user = await User.findOne({
+                where: { email },
+                include: 'role',
+            })
 
             if (!user) {
                 return res
@@ -85,6 +88,7 @@ class authController {
             res.status(500).json({ message: 'Login failed', error })
         }
     }
+
     //đăng ký
     createUser = async (req, res) => {
         try {
@@ -101,7 +105,8 @@ class authController {
             //tạo id với 1 mã hex ngẫu nhiên
             const userID = generateRandomHexId(16)
             // Mã hóa mật khẩu
-            const hashedPassword = await bcrypt.hash(password, 10) // 10 là số lần băm
+            const hashedPassword = await bcrypt.hash(password, 10)
+            const role = await Role.findOne({ where: { roleName: 'User' } })
 
             // Tạo User với mật khẩu đã mã hóa
             const newUser = await User.create({
@@ -109,18 +114,24 @@ class authController {
                 firstName,
                 lastName,
                 email,
-                password: hashedPassword, // Lưu mật khẩu đã mã hóa
+                password: hashedPassword,
+                roleId: role.roleId,
             })
 
-            // Tạo Refresh Token
-            const refreshToken = generateRefreshToken(newUser)
+            // Nạp lại user với role để đảm bảo 'role' được bao gồm
+            const userWithRole = await User.findOne({
+                where: { userID },
+                include: 'role',
+            })
 
-            // Tạo Access Token
-            const accessToken = generateAccessToken(newUser)
+            // Tạo Refresh Token cho user
+            const refreshToken = await generateRefreshToken(userWithRole)
+
+            // Tạo Access Token cho user
+            const accessToken = generateAccessToken(userWithRole)
 
             res.status(201).json({
-                message: 'Register successfull',
-                user: newUser,
+                user: userWithRole,
                 accessToken,
                 refreshToken,
             })
@@ -144,7 +155,10 @@ class authController {
             const payload = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET)
 
             // Kiểm tra token trong cơ sở dữ liệu
-            const storedToken = await RefreshToken.findOne({ where: { token } })
+            const storedToken = await RefreshToken.findOne({
+                where: { token },
+                include: 'user',
+            })
 
             if (!storedToken) {
                 return res
@@ -152,8 +166,17 @@ class authController {
                     .json({ message: 'Invalid refresh token' })
             }
 
+            // Kiểm tra xem token đã hết hạn chưa
+            if (new Date() > storedToken.expires_at) {
+                // Xóa token đã hết hạn
+                await RefreshToken.destroy({ where: { token } })
+                return res
+                    .status(403)
+                    .json({ message: 'Refresh token has expired' })
+            }
+
             // Tạo Access Token mới
-            const user = await User.findByPk(payload.userId)
+            const user = storedToken.user
             const accessToken = generateAccessToken(user)
 
             res.status(200).json({
