@@ -1,0 +1,79 @@
+// controllers/postController.js
+import { Post, User, Topic } from '../models/index.js'
+
+class PostController {
+    // Lấy tất cả các bài viết
+    async getAllPosts(req, res) {
+        try {
+            const posts = await Post.findAll({
+                include: [{ model: Topic, as: 'topic' }], // Bao gồm thông tin user và topic
+            })
+            res.status(200).json(posts)
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
+
+    // Tạo bài viết mới
+    async createPost(req, res) {
+        const { title, content, image, topicId, userId, userName, userAvatar } =
+            req.body // Lấy dữ liệu từ body
+        try {
+            const newPost = await Post.create({
+                title,
+                content,
+                image,
+                topicId,
+                userId,
+                userName,
+                userAvatar,
+            })
+            res.status(201).json(newPost)
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
+
+    // Sửa bài viết
+    async updatePost(req, res) {
+        const { postId } = req.params // Lấy postId từ URL
+        const { title, content, image, topicId } = req.body // Lấy dữ liệu từ body
+
+        try {
+            const post = await Post.findByPk(postId)
+            if (!post) {
+                return res.status(404).json({ message: 'Post not found' })
+            }
+
+            post.title = title // Cập nhật tên bài viết
+            post.content = content
+            post.image = image
+            post.topicId = topicId
+
+            await post.save() // Lưu thay đổi
+
+            res.status(200).json(post)
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
+
+    // Xóa bài viết
+    async deletePost(req, res) {
+        const { postId } = req.params
+
+        try {
+            const post = await Post.findByPk(postId)
+            if (!post) {
+                return res.status(404).json({ message: 'Post not found' })
+            }
+
+            await post.destroy() // Xóa bài viết
+            res.status(204).send() // Trả về 204 No Content
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
+}
+
+export default new PostController()

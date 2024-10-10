@@ -8,6 +8,7 @@ const Post = sequelize.define(
             type: DataTypes.CHAR(36),
             primaryKey: true,
             allowNull: false,
+            defaultValue: DataTypes.UUIDV4,
         },
         topicId: {
             type: DataTypes.CHAR(36),
@@ -23,14 +24,14 @@ const Post = sequelize.define(
         },
         userAvatar: {
             type: DataTypes.STRING(255),
-            allowNull: true,
+            allowNull: false,
         },
         title: {
             type: DataTypes.STRING(255),
             allowNull: false,
         },
         content: {
-            type: DataTypes.STRING(1000),
+            type: DataTypes.STRING(60000),
             allowNull: false,
         },
         image: {
@@ -41,6 +42,8 @@ const Post = sequelize.define(
     {
         timestamps: true,
         tableName: 'posts',
+        charset: 'utf8mb4',
+        collate: 'utf8mb4_unicode_ci',
     }
 )
 

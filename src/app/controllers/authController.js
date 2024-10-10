@@ -83,6 +83,7 @@ class authController {
                 message: 'Login successfull',
                 accessToken,
                 refreshToken,
+                user,
             })
         } catch (error) {
             res.status(500).json({ message: 'Login failed', error })

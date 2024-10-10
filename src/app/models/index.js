@@ -35,5 +35,16 @@ Post.belongsTo(Topic, {
     as: 'topic',
 })
 
+// Mối quan hệ giữa User và Post
+User.hasMany(Post, {
+    foreignKey: 'userId',
+    as: 'posts',
+    onDelete: 'CASCADE', // Khi User bị xóa, các Post liên quan cũng sẽ bị xóa
+})
+Post.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user',
+})
+
 // Xuất ra các models
 export { User, RefreshToken, Role, Topic, Post }
