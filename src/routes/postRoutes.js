@@ -9,6 +9,10 @@ router.get('/', PostController.getAllPosts)
 
 router.post('/', authenticateToken, PostController.createPost)
 
+router.get('/:userId', PostController.getPostsByUserId)
+
+router.get('/topic/:topicId', PostController.getPostsByTopicId)
+
 router.put('/:postId', authenticateToken, PostController.updatePost)
 
 router.delete('/:postId', authenticateToken, PostController.deletePost)
