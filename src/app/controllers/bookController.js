@@ -45,7 +45,12 @@ class BookController {
     async getAllBooks(req, res) {
         try {
             const books = await Book.findAll({
-                include: [{ model: Category, as: 'categories' }], // Bao gồm thông tin category
+                include: [
+                    {
+                        model: Category,
+                        as: 'categories',
+                    },
+                ], // Bao gồm thông tin category
             })
             res.status(200).json(books)
         } catch (error) {
@@ -58,7 +63,12 @@ class BookController {
         try {
             const { bookId } = req.params
             const book = await Book.findByPk(bookId, {
-                include: { model: Category, as: 'category' },
+                include: [
+                    {
+                        model: Category,
+                        as: 'categories',
+                    },
+                ],
             })
 
             if (!book) {
