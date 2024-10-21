@@ -1,9 +1,10 @@
 import { Book, Category } from '../models/index.js'
+import { Op } from 'sequelize'
 
 class BookController {
     // Tạo mới một cuốn sách
     async createBook(req, res) {
-        try {
+        try {q
             const {
                 isbn,
                 bookName,
@@ -132,6 +133,62 @@ class BookController {
 
             await book.destroy()
             res.status(200).json({ message: 'Book deleted successfully' })
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
+// lấy sách theo thể loại
+
+    async getBooksByCategory(req, res) {
+        try {
+            const { categoryId } = req.params
+            const category = await Category.findByPk(categoryId, {
+                include: [
+                    {
+                        model: Book,
+                        as: 'books',
+                    },
+                ],
+            })
+    
+            if (!category) {
+                return res.status(404).json({ message: 'Category not found' })
+            }
+    
+            res.status(200).json(category)
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
+    // Tìm sách theo nhiều điều kiện
+    async searchBooks(req, res) {
+        try {
+            const {search}= req.query
+            const where = {}
+            if (!search) {
+                return res.status(400).json({ message: 'Search term is required' });
+            }
+            
+                where[Op.or] = [
+                    { bookName: { [Op.like]: `%${search}%` } },
+                    { author: { [Op.like]: `%${search}%` } },
+                    { country: { [Op.like]: `%${search}%` } },
+                    { publisher: { [Op.like]: `%${search}%` } },
+                ]
+            
+
+
+            const books = await Book.findAll({
+                where,
+                include: [
+                    {
+                        model: Category,
+                        as: 'categories',
+                    },
+                ],
+            })
+
+            res.status(200).json(books)
         } catch (error) {
             res.status(500).json({ error: error.message })
         }
