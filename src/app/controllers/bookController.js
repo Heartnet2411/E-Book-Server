@@ -4,7 +4,8 @@ import { Op } from 'sequelize'
 class BookController {
     // Tạo mới một cuốn sách
     async createBook(req, res) {
-        try {q
+        try {
+            q
             const {
                 isbn,
                 bookName,
@@ -137,58 +138,90 @@ class BookController {
             res.status(500).json({ error: error.message })
         }
     }
-// lấy sách theo thể loại
 
-    async getBooksByCategory(req, res) {
-        try {
-            const { categoryId } = req.params
-            const category = await Category.findByPk(categoryId, {
-                include: [
-                    {
-                        model: Book,
-                        as: 'books',
-                    },
-                ],
-            })
-    
-            if (!category) {
-                return res.status(404).json({ message: 'Category not found' })
-            }
-    
-            res.status(200).json(category)
-        } catch (error) {
-            res.status(500).json({ error: error.message })
-        }
-    }
     // Tìm sách theo nhiều điều kiện
     async searchBooks(req, res) {
         try {
-            const {search}= req.query
+            const {
+                name,
+                page = 1,
+                country,
+                startYear,
+                endYear,
+                categoryId,
+            } = req.query
+            const limit = 10 // Giới hạn 10 sách mỗi trang
+            const offset = (page - 1) * limit // Tính vị trí bắt đầu
+
             const where = {}
-            if (!search) {
-                return res.status(400).json({ message: 'Search term is required' });
-            }
-            
+
+            // Thêm điều kiện tìm kiếm nếu có từ khóa
+            if (name) {
                 where[Op.or] = [
-                    { bookName: { [Op.like]: `%${search}%` } },
-                    { author: { [Op.like]: `%${search}%` } },
-                    { country: { [Op.like]: `%${search}%` } },
-                    { publisher: { [Op.like]: `%${search}%` } },
+                    { bookName: { [Op.like]: `%${name}%` } },
+                    { author: { [Op.like]: `%${name}%` } },
                 ]
-            
+            }
 
+            // Thêm điều kiện tìm kiếm theo quốc gia nếu có
+            if (country) {
+                where.country = { [Op.like]: `%${country}%` } // Tìm kiếm theo quốc gia (có thể là một phần)
+            }
 
-            const books = await Book.findAll({
+            // Thêm điều kiện tìm kiếm theo khoảng năm nếu có
+            if (startYear && endYear) {
+                const startDate = new Date(`${startYear}-01-01`)
+                const endDate = new Date(`${endYear}-12-31`)
+                where.releaseDate = {
+                    [Op.between]: [startDate, endDate], // Tìm sách có ngày xuất bản trong khoảng đã cho
+                }
+            } else if (startYear) {
+                const startDate = new Date(`${startYear}-01-01`)
+                where.releaseDate = {
+                    [Op.gte]: startDate, // Tìm sách có ngày xuất bản từ năm bắt đầu trở về sau
+                }
+            } else if (endYear) {
+                const endDate = new Date(`${endYear}-12-31`)
+                where.releaseDate = {
+                    [Op.lte]: endDate, // Tìm sách có ngày xuất bản trước năm kết thúc
+                }
+            }
+
+            // Xây dựng các điều kiện include cho Category
+            const include = [
+                {
+                    model: Category,
+                    as: 'categories',
+                    attributes: ['categoryId', 'name'],
+                    ...(categoryId ? { where: { categoryId } } : {}), // Thêm điều kiện where nếu có categoryId
+                },
+            ]
+
+            // Đếm tổng số sách thỏa mãn điều kiện với include
+            const totalBooks = await Book.count({
                 where,
-                include: [
-                    {
-                        model: Category,
-                        as: 'categories',
-                    },
-                ],
+                include,
+                distinct: true, // Đảm bảo chỉ đếm các sách duy nhất
             })
 
-            res.status(200).json(books)
+            // Tìm các sách với phân trang và include
+            const books = await Book.findAll({
+                where,
+                include,
+                limit,
+                offset,
+            })
+
+            // Tính tổng số trang dựa trên tổng số sách
+            const totalPages = Math.ceil(totalBooks / limit)
+
+            res.status(200).json({
+                books,
+                totalBooks,
+                totalPages,
+                currentPage: parseInt(page),
+                limit,
+            })
         } catch (error) {
             res.status(500).json({ error: error.message })
         }
