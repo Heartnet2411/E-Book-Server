@@ -1,7 +1,6 @@
 import { DataTypes } from 'sequelize'
 import sequelize from '../../connection/connection.js'
 import bcrypt from 'bcryptjs'
-import RefreshToken from './RefreshToken.js'
 
 // Định nghĩa model User
 const User = sequelize.define(

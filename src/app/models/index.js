@@ -8,6 +8,8 @@ import FavoritePost from './FavoritePost.js'
 import Book from './Book.js'
 import Category from './Category.js'
 import BookCategory from './BookCategory.js'
+import BookComment from './BookComment.js'
+import BookSaved from './BookSaved.js'
 
 // Thiết lập mối quan hệ một-một
 User.hasOne(RefreshToken, {
@@ -107,6 +109,23 @@ Category.belongsToMany(Book, {
     as: 'books',
 })
 
+// Thiết lập mối quan hệ giữa User và Book thông qua BookComment
+// User có nhiều bình luận trên nhiều sách
+User.hasMany(BookComment, { foreignKey: 'userId', as: 'comments' })
+
+// Book có nhiều bình luận từ nhiều người dùng
+Book.hasMany(BookComment, { foreignKey: 'bookId', as: 'comments' })
+
+// BookComment thuộc về một User và một Book
+BookComment.belongsTo(User, { foreignKey: 'userId', as: 'user' })
+BookComment.belongsTo(Book, { foreignKey: 'bookId', as: 'book' })
+
+User.hasMany(BookSaved, { foreignKey: 'userId' })
+BookSaved.belongsTo(User, { foreignKey: 'userId' })
+
+Book.hasMany(BookSaved, { foreignKey: 'bookId' })
+BookSaved.belongsTo(Book, { foreignKey: 'bookId' })
+
 // Xuất ra các models
 export {
     User,
@@ -119,4 +138,6 @@ export {
     Book,
     Category,
     BookCategory,
+    BookComment,
+    BookSaved,
 }

@@ -7,6 +7,8 @@ import savedPostRoutes from './savedPostRoutes.js'
 import favoritePostRoutes from './favoritePostRoutes.js'
 import categoryRoutes from './categoryRoutes.js'
 import bookRoutes from './bookRoutes.js'
+import bookComment from './bookCommentRoutes.js'
+import savedBook from './savedBookRoutes.js'
 
 function router(app) {
     app.use('/api/user', authRoutes)
@@ -26,6 +28,10 @@ function router(app) {
     app.use('/api/book', bookRoutes)
 
     app.use('/api/category', categoryRoutes)
+
+    app.use('/api/book/comments', bookComment)
+
+    app.use('/api/book/saved', savedBook)
 }
 
 export default router
