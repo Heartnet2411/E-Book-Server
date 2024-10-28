@@ -30,6 +30,11 @@ const BookComment = sequelize.define(
             allowNull: false,
             defaultValue: DataTypes.UUIDV4,
         },
+        state: {
+            type: DataTypes.ENUM('pending', 'approved', 'hidden'),
+            allowNull: false,
+            defaultValue: 'pending', // Trạng thái mặc định là "đang chờ kiểm duyệt"
+        },
     },
     {
         timestamps: true, // Để có createdAt và updatedAt tự động

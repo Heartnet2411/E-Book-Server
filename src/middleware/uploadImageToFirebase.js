@@ -6,8 +6,10 @@ export const uploadImageToFirebase = async (req, res, next) => {
         const storage = getStorage(app)
         const image = req.file // Giả sử file được gửi qua request
 
+        // Nếu không có ảnh thì bỏ qua bước upload và chuyển sang bước tiếp theo
         if (!image) {
-            return res.status(400).json({ message: 'No image file provided' })
+            req.imageUrl = null // Đặt giá trị null cho imageUrl nếu không có ảnh
+            return next() // Tiếp tục đến hàm xử lý tiếp theo
         }
 
         const storageRef = ref(

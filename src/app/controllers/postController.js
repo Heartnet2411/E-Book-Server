@@ -81,10 +81,9 @@ class PostController {
 
     // Tạo bài viết mới
     async createPost(req, res) {
-        // Lấy dữ liệu từ body
         const { title, content, topicId } = req.body
-        const userId = req.user.userId // Lấy userId từ token đã được middleware xác thực
-        const image = req.imageUrl // URL hình ảnh được lấy từ middleware upload
+        const userId = req.user.userId
+        const image = req.imageUrl || null
 
         try {
             const newPost = await Post.create({
