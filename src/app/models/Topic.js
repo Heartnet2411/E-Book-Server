@@ -5,7 +5,7 @@ const Topic = sequelize.define(
     'Topic',
     {
         topicId: {
-            type: DataTypes.CHAR(36), // UUID
+            type: DataTypes.UUID, // UUID
             primaryKey: true,
             defaultValue: DataTypes.UUIDV4, // Tự động tạo UUID
         },

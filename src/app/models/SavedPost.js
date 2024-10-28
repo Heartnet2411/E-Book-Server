@@ -17,6 +17,7 @@ const SavedPost = sequelize.define(
     },
     {
         timestamps: true,
+        tableName: 'saved_posts',
     }
 )
 

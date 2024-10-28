@@ -21,4 +21,7 @@ bin-release/
 src/config/
 node_modules/
 
+src/utils/firebase.js
+
 .env
+

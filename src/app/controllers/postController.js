@@ -6,7 +6,14 @@ class PostController {
     async getAllPosts(req, res) {
         try {
             const posts = await Post.findAll({
-                include: [{ model: Topic, as: 'topic' }], // Bao gồm thông tin user và topic
+                include: [
+                    { model: Topic, as: 'topic' },
+                    {
+                        model: User,
+                        as: 'user',
+                        attributes: ['avatar', 'firstname', 'lastname'],
+                    },
+                ],
             })
             res.status(200).json(posts)
         } catch (error) {
@@ -21,7 +28,14 @@ class PostController {
             // Tìm tất cả bài viết của user với userId
             const posts = await Post.findAll({
                 where: { userId }, // Điều kiện lọc theo userId
-                include: [{ model: Topic, as: 'topic' }], // Bao gồm thông tin về topic
+                include: [
+                    { model: Topic, as: 'topic' },
+                    {
+                        model: User,
+                        as: 'user',
+                        attributes: ['avatar', 'firstname', 'lastname'],
+                    },
+                ], // Bao gồm thông tin về topic
             })
 
             if (!posts || posts.length === 0) {
@@ -43,7 +57,14 @@ class PostController {
             // Tìm tất cả bài viết của topic với topicId
             const posts = await Post.findAll({
                 where: { topicId }, // Điều kiện lọc theo topicId
-                include: [{ model: Topic, as: 'topic' }], // Bao gồm thông tin topic
+                include: [
+                    { model: Topic, as: 'topic' },
+                    {
+                        model: User,
+                        as: 'user',
+                        attributes: ['avatar', 'firstname', 'lastname'],
+                    },
+                ], // Bao gồm thông tin topic
             })
 
             if (!posts || posts.length === 0) {
@@ -60,8 +81,11 @@ class PostController {
 
     // Tạo bài viết mới
     async createPost(req, res) {
-        const { title, content, image, topicId, userId, userName, userAvatar } =
-            req.body // Lấy dữ liệu từ body
+        // Lấy dữ liệu từ body
+        const { title, content, topicId } = req.body
+        const userId = req.user.userId // Lấy userId từ token đã được middleware xác thực
+        const image = req.imageUrl // URL hình ảnh được lấy từ middleware upload
+
         try {
             const newPost = await Post.create({
                 title,
@@ -69,12 +93,11 @@ class PostController {
                 image,
                 topicId,
                 userId,
-                userName,
-                userAvatar,
             })
             res.status(201).json(newPost)
         } catch (error) {
             res.status(500).json({ error: error.message })
+            console.log(error)
         }
     }
 

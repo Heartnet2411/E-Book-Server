@@ -17,6 +17,7 @@ const FavoritePost = sequelize.define(
     },
     {
         timestamps: true,
+        tableName: 'favorite_posts',
     }
 )
 
