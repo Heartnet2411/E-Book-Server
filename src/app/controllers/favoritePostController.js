@@ -4,25 +4,32 @@ class FavoritePostController {
     // Đánh dấu một bài viết là yêu thích
     async addFavoritePost(req, res) {
         try {
-            const { userId, postId } = req.body
+            const postId = req.body.postId // Lấy postId từ body
+            const userId = req.user.userId // Lấy userId từ thông tin xác thực
 
-            // Kiểm tra xem người dùng và bài viết có tồn tại không
-            const user = await User.findByPk(userId)
+            // Kiểm tra xem bài viết có tồn tại không
             const post = await Post.findByPk(postId)
-
-            if (!user || !post) {
-                return res
-                    .status(404)
-                    .json({ message: 'User or Post not found' })
+            if (!post) {
+                return res.status(404).json({ message: 'Post not found' })
             }
 
-            // Đánh dấu bài viết là yêu thích
-            await FavoritePost.create({ userId, postId })
+            // Kiểm tra xem bài viết đã được đánh dấu yêu thích chưa
+            const existingFavoritePost = await FavoritePost.findOne({
+                where: { userId, postId },
+            })
+            if (existingFavoritePost) {
+                return res
+                    .status(400)
+                    .json({ message: 'Post is already in favorites' })
+            }
 
+            // Thêm bài viết vào danh sách yêu thích
+            await FavoritePost.create({ userId, postId })
             res.status(201).json({
                 message: 'Post added to favorites successfully',
             })
         } catch (error) {
+            console.error(error)
             res.status(500).json({ error: error.message })
         }
     }
@@ -30,8 +37,10 @@ class FavoritePostController {
     // Xóa bài viết khỏi danh sách yêu thích
     async removeFavoritePost(req, res) {
         try {
-            const { userId, postId } = req.body
+            const postId = req.body.postId
+            const userId = req.user.userId
 
+            // Tìm bài viết yêu thích
             const favoritePost = await FavoritePost.findOne({
                 where: { userId, postId },
             })
@@ -43,30 +52,58 @@ class FavoritePostController {
             }
 
             await favoritePost.destroy()
-
             res.status(200).json({
                 message: 'Post removed from favorites successfully',
             })
         } catch (error) {
+            console.error(error)
             res.status(500).json({ error: error.message })
         }
     }
 
     // Lấy tất cả bài viết yêu thích của một người dùng
     async getFavoritePosts(req, res) {
-        try {
-            const { userId } = req.params
+        const userId = req.user.userId
 
-            const user = await User.findByPk(userId, {
-                include: [{ model: Post, as: 'favoritePosts' }],
+        try {
+            const favoritePosts = await FavoritePost.findAll({
+                where: { userId },
+                include: [
+                    {
+                        model: Post,
+                        as: 'post',
+                        include: [
+                            {
+                                model: User,
+                                as: 'user',
+                                attributes: ['avatar', 'firstname', 'lastname'],
+                            },
+                        ],
+                    },
+                ],
             })
 
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' })
-            }
-
-            res.status(200).json(user.favoritePosts)
+            res.status(200).json(favoritePosts)
         } catch (error) {
+            console.error(error)
+            res.status(500).json({ error: error.message })
+        }
+    }
+
+    // Kiểm tra xem bài viết có nằm trong danh sách yêu thích không
+    async getFavoritePostByPostId(req, res) {
+        try {
+            const postId = req.params.postId
+            const userId = req.user.userId
+
+            const favoritePost = await FavoritePost.findOne({
+                where: { userId, postId },
+            })
+
+            const isFavorite = favoritePost ? true : false
+            res.status(200).json({ isFavorite })
+        } catch (error) {
+            console.error(error)
             res.status(500).json({ error: error.message })
         }
     }

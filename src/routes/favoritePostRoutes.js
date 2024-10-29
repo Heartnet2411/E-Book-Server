@@ -1,5 +1,5 @@
 import express from 'express'
-import favoritePostController from '../app/controllers/favoritePostController.js'
+import favoritePostController from '../app/controllers/FavoritePostController.js'
 import authenticateToken from '../middleware/authenticateToken.js'
 
 const router = express.Router()
@@ -19,6 +19,13 @@ router.get(
     '/users/:userId',
     authenticateToken,
     favoritePostController.getFavoritePosts
+)
+
+// Route để kiểm tra xem bài viết có nằm trong danh sách yêu thích hay không
+router.get(
+    '/favoritePosts/:postId',
+    authenticateToken,
+    favoritePostController.getFavoritePostByPostId
 )
 
 export default router
