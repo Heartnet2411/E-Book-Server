@@ -1,16 +1,20 @@
 import { DataTypes } from 'sequelize'
 import sequelize from '../../connection/connection.js'
 
-const Post = sequelize.define(
-    'Post',
+const Report = sequelize.define(
+    'Report',
     {
-        postId: {
+        reportId: {
             type: DataTypes.UUID,
             primaryKey: true,
             allowNull: false,
             defaultValue: DataTypes.UUIDV4,
         },
-        topicId: {
+        targetType: {
+            type: DataTypes.ENUM('book_comment', 'forum_comment', 'forum_post'),
+            allowNull: false,
+        },
+        targetId: {
             type: DataTypes.UUID,
             allowNull: false,
         },
@@ -18,28 +22,20 @@ const Post = sequelize.define(
             type: DataTypes.CHAR(100),
             allowNull: false,
         },
-        title: {
+        reason: {
             type: DataTypes.STRING(255),
             allowNull: false,
         },
-        content: {
-            type: DataTypes.TEXT,
+        status: {
+            type: DataTypes.ENUM('pending', 'reviewed', 'rejected'),
+            defaultValue: 'pending',
             allowNull: false,
-        },
-        image: {
-            type: DataTypes.STRING(255),
-            allowNull: true,
-        },
-        state: {
-            type: DataTypes.ENUM('pending', 'approved', 'hidden'),
-            allowNull: false,
-            defaultValue: 'pending', // Trạng thái mặc định là "đang chờ kiểm duyệt"
         },
     },
     {
         timestamps: true,
-        tableName: 'posts',
+        tableName: 'reports',
     }
 )
 
-export default Post
+export default Report
