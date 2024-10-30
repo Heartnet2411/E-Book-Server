@@ -10,6 +10,7 @@ import Category from './Category.js'
 import BookCategory from './BookCategory.js'
 import BookComment from './BookComment.js'
 import BookSaved from './BookSaved.js'
+import PostComment from './PostComment.js'
 
 // Thiết lập mối quan hệ một-một
 User.hasOne(RefreshToken, {
@@ -126,6 +127,33 @@ BookSaved.belongsTo(User, { foreignKey: 'userId' })
 Book.hasMany(BookSaved, { foreignKey: 'bookId' })
 BookSaved.belongsTo(Book, { foreignKey: 'bookId' })
 
+// Thiết lập các quan hệ
+Post.hasMany(PostComment, {
+    foreignKey: 'postId',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+})
+PostComment.belongsTo(Post, { foreignKey: 'postId' })
+
+User.hasMany(PostComment, {
+    foreignKey: 'userId',
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+})
+PostComment.belongsTo(User, { foreignKey: 'userId' })
+
+// Tự tham chiếu để tạo mối quan hệ reply comment
+PostComment.hasMany(PostComment, {
+    foreignKey: 'replyId',
+    as: 'Replies',
+    onDelete: 'SET NULL',
+    onUpdate: 'CASCADE',
+})
+PostComment.belongsTo(PostComment, {
+    foreignKey: 'replyId',
+    as: 'ParentComment',
+})
+
 // Xuất ra các models
 export {
     User,
@@ -140,4 +168,5 @@ export {
     BookCategory,
     BookComment,
     BookSaved,
+    PostComment,
 }

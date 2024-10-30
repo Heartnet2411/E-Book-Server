@@ -9,6 +9,7 @@ import categoryRoutes from './categoryRoutes.js'
 import bookRoutes from './bookRoutes.js'
 import bookComment from './bookCommentRoutes.js'
 import savedBook from './savedBookRoutes.js'
+import postComment from './postCommentRoutes.js'
 
 function router(app) {
     app.use('/api/user', authRoutes)
@@ -24,6 +25,11 @@ function router(app) {
     app.use('/api/post/saved', savedPostRoutes)
 
     app.use('/api/post/favorite', favoritePostRoutes)
+<<<<<<< HEAD
+=======
+
+    app.use('/api/post/comment', postComment)
+>>>>>>> post
 
     app.use('/api/book', bookRoutes)
 
