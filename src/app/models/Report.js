@@ -11,7 +11,7 @@ const Report = sequelize.define(
             defaultValue: DataTypes.UUIDV4,
         },
         targetType: {
-            type: DataTypes.ENUM('book_comment', 'forum_comment', 'forum_post'),
+            type: DataTypes.ENUM('book_comment', 'post_comment', 'post'),
             allowNull: false,
         },
         targetId: {

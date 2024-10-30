@@ -3,6 +3,7 @@ import RefreshToken from './RefreshToken.js'
 import Role from './Role.js'
 import Topic from './Topic.js'
 import Post from './Post.js'
+import Report from './Report.js'
 import SavedPost from './SavedPost.js'
 import FavoritePost from './FavoritePost.js'
 import Book from './Book.js'
@@ -154,6 +155,52 @@ PostComment.belongsTo(PostComment, {
     as: 'ParentComment',
 })
 
+Report.belongsTo(User,{
+    foreignKey: 'userId',
+})
+User.hasMany(Report, {
+    foreignKey: 'userId',
+    as: 'reports',
+});
+// Quan hệ với Post
+Report.belongsTo(Post, {
+    foreignKey: 'targetId',
+    constraints: false,
+    scope: {
+        targetType: 'post',
+    },
+});
+Post.hasMany(Report, {
+    foreignKey: 'targetId',
+    as: 'postReports',
+    constraints: false,
+});
+// Quan hệ với PostComment
+Report.belongsTo(PostComment, {
+    foreignKey: 'targetId',
+    constraints: false,
+    scope: {
+        targetType: 'post_comment',
+    },
+});
+PostComment.hasMany(Report, {
+    foreignKey: 'targetId',
+    as: 'postCommentReports',
+    constraints: false,
+});
+// Quan hệ với BookComment
+Report.belongsTo(BookComment, {
+    foreignKey: 'targetId',
+    constraints: false,
+    scope: {
+        targetType: 'book_comment',
+    },
+});
+BookComment.hasMany(Report, {
+    foreignKey: 'targetId',
+    as: 'bookCommentReports',
+    constraints: false,
+});
 // Xuất ra các models
 export {
     User,
@@ -169,4 +216,5 @@ export {
     BookComment,
     BookSaved,
     PostComment,
+    Report,
 }

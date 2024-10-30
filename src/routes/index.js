@@ -25,11 +25,8 @@ function router(app) {
     app.use('/api/post/saved', savedPostRoutes)
 
     app.use('/api/post/favorite', favoritePostRoutes)
-<<<<<<< HEAD
-=======
 
     app.use('/api/post/comment', postComment)
->>>>>>> post
 
     app.use('/api/book', bookRoutes)
 
@@ -40,4 +37,4 @@ function router(app) {
     app.use('/api/book/saved', savedBook)
 }
 
-export default router
+export default router   
