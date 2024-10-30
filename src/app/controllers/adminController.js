@@ -49,6 +49,24 @@ class adminController {
             })
         }
     }
+     // Lấy thông tin tất cả người dùng
+     async getAllUsers(req, res) {
+        try {
+            // Lấy thông tin tất cả người dùng
+            const users = await User.findAll({
+                include: 'role', // Bao gồm thông tin role của user
+            })
+
+            // Trả về danh sách người dùng
+            res.status(200).json(users)
+        } catch (error) {
+            // Xử lý lỗi và trả về thông báo lỗi
+            res.status(500).json({
+                message: 'Something went wrong',
+                error: error.message,
+            })
+        }
+    }
 }
 
 export default new adminController()

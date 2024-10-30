@@ -21,9 +21,9 @@ function router(app) {
 
     app.use('/api/user', userRoutes)
 
-    app.use('/api/saved', savedPostRoutes)
+    app.use('/api/post/saved', savedPostRoutes)
 
-    app.use('/api/favorite', favoritePostRoutes)
+    app.use('/api/post/favorite', favoritePostRoutes)
 
     app.use('/api/book', bookRoutes)
 

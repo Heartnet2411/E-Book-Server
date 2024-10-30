@@ -1,5 +1,5 @@
 import express from 'express'
-import savedPostController from '../app/controllers/savedPostController.js'
+import savedPostController from '../app/controllers/SavedPostController.js'
 import authenticateToken from '../middleware/authenticateToken.js'
 
 const router = express.Router()
@@ -11,13 +11,9 @@ router.post('/save', authenticateToken, savedPostController.savePost)
 router.delete('/unsave', authenticateToken, savedPostController.unsavePost)
 
 // Route để lấy tất cả bài viết đã lưu của một người dùng
-router.get(
-    '/users/:userId',
-    authenticateToken,
-    savedPostController.getSavedPosts
-)
+router.get('/:userId', authenticateToken, savedPostController.getSavedPosts)
 
-router.post(
+router.get(
     '/savedPosts/:postId',
     authenticateToken,
     savedPostController.getSavedPostByPostId

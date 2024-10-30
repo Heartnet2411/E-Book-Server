@@ -30,6 +30,7 @@ class SavedPostController {
 
             res.status(201).json({ message: 'Post saved successfully' })
         } catch (error) {
+            console.log(error)
             res.status(500).json({ error: error.message })
         }
     }
@@ -63,7 +64,19 @@ class SavedPostController {
         try {
             const savedPosts = await SavedPost.findAll({
                 where: { userId },
-                include: [{ model: Post, as: 'post' }], // Sử dụng alias 'post'
+                include: [
+                    {
+                        model: Post,
+                        as: 'post',
+                        include: [
+                            {
+                                model: User,
+                                as: 'user',
+                                attributes: ['avatar', 'firstname', 'lastname'],
+                            },
+                        ],
+                    },
+                ],
             })
 
             res.status(200).json(savedPosts)
@@ -77,7 +90,7 @@ class SavedPostController {
             const postId = req.params.postId // Lấy postId từ tham số URL
             const userId = req.user.userId // Lấy userId từ thông tin xác thực
 
-            // Tìm bài viết đã lưu
+            // Kiểm tra xem bài viết đã lưu có tồn tại hay không
             const savedPost = await SavedPost.findOne({
                 where: {
                     userId,
@@ -85,11 +98,9 @@ class SavedPostController {
                 },
             })
 
-            if (!savedPost) {
-                return res.status(404).json({ message: 'Saved post not found' })
-            }
-
-            res.status(200).json(savedPost)
+            // Nếu tồn tại thì trả về true, ngược lại trả về false
+            const isSaved = savedPost ? true : false
+            res.status(200).json({ isSaved })
         } catch (error) {
             res.status(500).json({ error: error.message })
         }

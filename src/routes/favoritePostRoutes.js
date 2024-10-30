@@ -21,4 +21,11 @@ router.get(
     favoritePostController.getFavoritePosts
 )
 
+// Route để kiểm tra xem bài viết có nằm trong danh sách yêu thích hay không
+router.get(
+    '/favoritePosts/:postId',
+    authenticateToken,
+    favoritePostController.getFavoritePostByPostId
+)
+
 export default router
