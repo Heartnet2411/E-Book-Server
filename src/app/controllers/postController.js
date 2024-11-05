@@ -66,7 +66,7 @@ class PostController {
                 ], // Bao gồm thông tin topic
             })
 
-            if (!posts || posts.length === 0) {
+            if (!posts) {
                 return res
                     .status(404)
                     .json({ message: 'No posts found for this topic' })

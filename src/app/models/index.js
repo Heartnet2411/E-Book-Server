@@ -134,14 +134,14 @@ Post.hasMany(PostComment, {
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
 })
-PostComment.belongsTo(Post, { foreignKey: 'postId' })
+PostComment.belongsTo(Post, { foreignKey: 'postId', as: 'post' })
 
 User.hasMany(PostComment, {
     foreignKey: 'userId',
     onDelete: 'CASCADE',
     onUpdate: 'CASCADE',
 })
-PostComment.belongsTo(User, { foreignKey: 'userId' })
+PostComment.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 
 // Tự tham chiếu để tạo mối quan hệ reply comment
 PostComment.hasMany(PostComment, {
@@ -155,13 +155,13 @@ PostComment.belongsTo(PostComment, {
     as: 'ParentComment',
 })
 
-Report.belongsTo(User,{
+Report.belongsTo(User, {
     foreignKey: 'userId',
 })
 User.hasMany(Report, {
     foreignKey: 'userId',
     as: 'reports',
-});
+})
 // Quan hệ với Post
 Report.belongsTo(Post, {
     foreignKey: 'targetId',
@@ -169,12 +169,12 @@ Report.belongsTo(Post, {
     scope: {
         targetType: 'post',
     },
-});
+})
 Post.hasMany(Report, {
     foreignKey: 'targetId',
     as: 'postReports',
     constraints: false,
-});
+})
 // Quan hệ với PostComment
 Report.belongsTo(PostComment, {
     foreignKey: 'targetId',
@@ -182,12 +182,12 @@ Report.belongsTo(PostComment, {
     scope: {
         targetType: 'post_comment',
     },
-});
+})
 PostComment.hasMany(Report, {
     foreignKey: 'targetId',
     as: 'postCommentReports',
     constraints: false,
-});
+})
 // Quan hệ với BookComment
 Report.belongsTo(BookComment, {
     foreignKey: 'targetId',
@@ -195,12 +195,12 @@ Report.belongsTo(BookComment, {
     scope: {
         targetType: 'book_comment',
     },
-});
+})
 BookComment.hasMany(Report, {
     foreignKey: 'targetId',
     as: 'bookCommentReports',
     constraints: false,
-});
+})
 // Xuất ra các models
 export {
     User,

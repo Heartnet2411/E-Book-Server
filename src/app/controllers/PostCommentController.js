@@ -1,10 +1,10 @@
-import { PostComment } from '../models/index.js'
+import { PostComment, User } from '../models/index.js'
 
 class PostCommentController {
     // Tạo mới một comment
     async createComment(req, res) {
         const { postId, replyId, content } = req.body
-        const userId = req.userId // Lấy userId từ token
+        const userId = req.user.userId // Lấy userId từ token
 
         try {
             const newComment = await PostComment.create({
@@ -15,6 +15,7 @@ class PostCommentController {
             })
             res.status(201).json(newComment)
         } catch (error) {
+            console.log(error)
             res.status(500).json({ error: error.message })
         }
     }
@@ -28,17 +29,25 @@ class PostCommentController {
                 where: {
                     postId,
                     replyId: null, // Chỉ lấy các comment chính
-                    status: true, // Chỉ lấy các comment có status = true
                 },
                 include: [
                     {
                         model: PostComment,
-                        as: 'replies', // Alias cho reply
-                        where: { status: true }, // Chỉ lấy các reply có status = true
+                        as: 'Replies', // Sử dụng alias 'Replies' đã định nghĩa cho các reply
                         required: false, // Để khi không có reply, comment chính vẫn được lấy
+                        include: {
+                            model: User,
+                            as: 'user',
+                            attributes: ['avatar', 'firstname', 'lastname'],
+                        },
+                    },
+                    {
+                        model: User,
+                        as: 'user',
+                        attributes: ['avatar', 'firstname', 'lastname'],
                     },
                 ],
-                order: [['createdAt', 'ASC']],
+                order: [['createdAt', 'DESC']],
             })
 
             res.status(200).json(comments)
