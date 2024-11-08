@@ -173,9 +173,9 @@ User.hasMany(Report, {
 Report.belongsTo(Post, {
     foreignKey: 'targetId',
     constraints: false,
-    scope: {
-        targetType: 'post',
-    },
+    // scope: {
+    //     targetType: 'post',
+    // },
 })
 Post.hasMany(Report, {
     foreignKey: 'targetId',

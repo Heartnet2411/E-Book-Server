@@ -1,5 +1,5 @@
 // controllers/postController.js
-import { Post, User, Topic } from '../models/index.js'
+import { Post, User, Topic,Report } from '../models/index.js'
 
 class PostController {
     // Lấy tất cả các bài viết
@@ -132,13 +132,50 @@ class PostController {
             if (!post) {
                 return res.status(404).json({ message: 'Post not found' })
             }
-
+            await Report.update(
+                { status: 'hidden' },
+                { where: { targetId: postId, targetType: 'post' } }
+            );
             await post.destroy() // Xóa bài viết
             res.status(204).send() // Trả về 204 No Content
         } catch (error) {
             res.status(500).json({ error: error.message })
         }
     }
+    async getPostsByState(req, res) {
+        const { filter } = req.params
+        try {
+            if (filter === 'all') {
+                const posts = await Post.findAll({
+                    include: [
+                        { model: Topic, as: 'topic' },
+                        {
+                            model: User,
+                            as: 'user',
+                            attributes: ['avatar', 'firstname', 'lastname'],
+                        },
+                    ],
+                })
+                res.status(200).json(posts)
+            } else {
+                const posts = await Post.findAll({
+                    where: { state: filter },
+                    include: [
+                        { model: Topic, as: 'topic' },
+                        {
+                            model: User,
+                            as: 'user',
+                            attributes: ['avatar', 'firstname', 'lastname'],
+                        },
+                    ],
+                })
+                res.status(200).json(posts)
+            }
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
+    
 }
 
 export default new PostController()

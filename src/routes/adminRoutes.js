@@ -5,6 +5,7 @@ import authenticateAdmin from '../middleware/authenticateAdmin.js'
 
 // Route để gán quyền Admin cho user
 router.post('/assign-admin', authenticateAdmin, adminController.assignAdminRole)
+router.post('/post/approved/:postId',authenticateAdmin,adminController.approvedPendingPost)
+router.put('/post/rejected/:postId',authenticateAdmin,adminController.rejectPendingPost)
 router.get('/users',authenticateAdmin,adminController.getAllUsers)
-
 export default router
