@@ -1,4 +1,4 @@
-import { User, Role } from '../models/index.js'
+import { User, Role, Post } from '../models/index.js'
 
 class adminController {
     // Hàm gán quyền Admin cho một user
@@ -49,8 +49,8 @@ class adminController {
             })
         }
     }
-     // Lấy thông tin tất cả người dùng
-     async getAllUsers(req, res) {
+    // Lấy thông tin tất cả người dùng
+    async getAllUsers(req, res) {
         try {
             // Lấy thông tin tất cả người dùng
             const users = await User.findAll({
@@ -65,6 +65,32 @@ class adminController {
                 message: 'Something went wrong',
                 error: error.message,
             })
+        }
+    }
+    async approvedPendingPost(req, res) {
+        const { postId } = req.params
+        try {
+            const post = await Post.findOne({
+                where: { postId },
+            })
+            post.state = 'approved'
+            await post.save()
+            res.status(200).json(post)
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
+    async rejectPendingPost(req, res) {
+        const { postId } = req.params
+        try {
+            const post = await Post.findOne({
+                where: { postId },
+            })
+            post.state = 'hidden'
+            await post.save()
+            res.status(200).json(post)
+        } catch (error) {
+            res.status(500).json({ error: error.message })
         }
     }
 }

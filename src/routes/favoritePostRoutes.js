@@ -1,5 +1,5 @@
 import express from 'express'
-import favoritePostController from '../app/controllers/FavoritePostController.js'
+import favoritePostController from '../app/controllers/favoritePostController.js'
 import authenticateToken from '../middleware/authenticateToken.js'
 
 const router = express.Router()

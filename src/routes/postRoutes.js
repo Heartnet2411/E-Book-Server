@@ -4,6 +4,7 @@ import PostController from '../app/controllers/PostController.js'
 import authenticateToken from '../middleware/authenticateToken.js'
 import { uploadImageToFirebase } from '../middleware/uploadImageToFirebase.js'
 import multer from 'multer'
+import authenticateAdmin from '../middleware/authenticateAdmin.js'
 
 const storage = multer.memoryStorage() // Lưu trữ file trong bộ nhớ
 const upload = multer({ storage: storage })
@@ -30,5 +31,7 @@ router.get('/topic/:topicId', PostController.getPostsByTopicId)
 router.put('/:postId', authenticateToken, PostController.updatePost)
 
 router.delete('/:postId', authenticateToken, PostController.deletePost)
+
+router.get('/list/:filter', authenticateAdmin, PostController.getPostsByState)
 
 export default router
