@@ -12,6 +12,7 @@ import BookCategory from './BookCategory.js'
 import BookComment from './BookComment.js'
 import BookSaved from './BookSaved.js'
 import PostComment from './PostComment.js'
+import BookReader from './BookReader.js'
 
 // Thiết lập mối quan hệ một-một
 User.hasOne(RefreshToken, {
@@ -118,6 +119,12 @@ User.hasMany(BookComment, { foreignKey: 'userId', as: 'comments' })
 // Book có nhiều bình luận từ nhiều người dùng
 Book.hasMany(BookComment, { foreignKey: 'bookId', as: 'comments' })
 
+// User có nhiều bình luận trên nhiều sách
+User.hasMany(BookReader, { foreignKey: 'userId', as: 'book_reader' })
+
+// Book có nhiều bình luận từ nhiều người dùng
+Book.hasMany(BookReader, { foreignKey: 'bookId', as: 'book_reader' })
+
 // BookComment thuộc về một User và một Book
 BookComment.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 BookComment.belongsTo(Book, { foreignKey: 'bookId', as: 'book' })
@@ -217,4 +224,5 @@ export {
     BookSaved,
     PostComment,
     Report,
+    BookReader,
 }
