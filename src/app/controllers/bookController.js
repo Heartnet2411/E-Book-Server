@@ -145,17 +145,17 @@ class BookController {
             const {
                 name,
                 page = 1,
-                country,
+                countries, // Chấp nhận nhiều quốc gia dưới dạng chuỗi phân tách bằng dấu phẩy
                 startYear,
                 endYear,
-                categoryId,
+                categoryIds,
             } = req.query
-            const limit = 10 // Giới hạn 10 sách mỗi trang
-            const offset = (page - 1) * limit // Tính vị trí bắt đầu
+            const limit = 10
+            const offset = (page - 1) * limit
 
             const where = {}
 
-            // Thêm điều kiện tìm kiếm nếu có từ khóa
+            // Thêm điều kiện tìm kiếm theo từ khóa
             if (name) {
                 where[Op.or] = [
                     { bookName: { [Op.like]: `%${name}%` } },
@@ -163,37 +163,38 @@ class BookController {
                 ]
             }
 
-            // Thêm điều kiện tìm kiếm theo quốc gia nếu có
-            if (country) {
-                where.country = { [Op.like]: `%${country}%` } // Tìm kiếm theo quốc gia (có thể là một phần)
+            // Thêm điều kiện tìm kiếm theo nhiều quốc gia
+            if (countries) {
+                where.country = {
+                    [Op.in]: countries
+                        .split(',')
+                        .map((country) => country.trim()),
+                }
             }
 
-            // Thêm điều kiện tìm kiếm theo khoảng năm nếu có
+            // Thêm điều kiện tìm kiếm theo khoảng năm
             if (startYear && endYear) {
-                const startDate = new Date(`${startYear}-01-01`)
-                const endDate = new Date(`${endYear}-12-31`)
                 where.releaseDate = {
-                    [Op.between]: [startDate, endDate], // Tìm sách có ngày xuất bản trong khoảng đã cho
+                    [Op.between]: [
+                        new Date(`${startYear}-01-01`),
+                        new Date(`${endYear}-12-31`),
+                    ],
                 }
             } else if (startYear) {
-                const startDate = new Date(`${startYear}-01-01`)
-                where.releaseDate = {
-                    [Op.gte]: startDate, // Tìm sách có ngày xuất bản từ năm bắt đầu trở về sau
-                }
+                where.releaseDate = { [Op.gte]: new Date(`${startYear}-01-01`) }
             } else if (endYear) {
-                const endDate = new Date(`${endYear}-12-31`)
-                where.releaseDate = {
-                    [Op.lte]: endDate, // Tìm sách có ngày xuất bản trước năm kết thúc
-                }
+                where.releaseDate = { [Op.lte]: new Date(`${endYear}-12-31`) }
             }
 
-            // Xây dựng các điều kiện include cho Category
+            // Kiểm tra nếu có nhiều categoryId và xử lý nó
             const include = [
                 {
                     model: Category,
                     as: 'categories',
                     attributes: ['categoryId', 'name'],
-                    ...(categoryId ? { where: { categoryId } } : {}), // Thêm điều kiện where nếu có categoryId
+                    where: categoryIds
+                        ? { categoryId: { [Op.in]: categoryIds.split(',') } }
+                        : undefined,
                 },
             ]
 
@@ -201,7 +202,7 @@ class BookController {
             const totalBooks = await Book.count({
                 where,
                 include,
-                distinct: true, // Đảm bảo chỉ đếm các sách duy nhất
+                distinct: true,
             })
 
             // Tìm các sách với phân trang và include
@@ -219,7 +220,7 @@ class BookController {
                 books,
                 totalBooks,
                 totalPages,
-                currentPage: parseInt(page),
+                currentPage: parseInt(page, 10),
                 limit,
             })
         } catch (error) {
