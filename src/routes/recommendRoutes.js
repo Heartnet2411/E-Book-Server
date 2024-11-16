@@ -5,4 +5,10 @@ const router = express.Router()
 
 router.get('/', authenticateToken, RecommendBookController.recommendBooks)
 
+router.get(
+    '/most-read-of-week',
+
+    RecommendBookController.getMostReadBooksOfTheWeek
+)
+
 export default router

@@ -1,5 +1,13 @@
 import { Op } from 'sequelize'
-import { Book, Category, BookSaved, BookComment } from '../models/index.js'
+import {
+    Book,
+    Category,
+    BookSaved,
+    BookComment,
+    BookReader,
+} from '../models/index.js'
+import { startOfWeek, endOfWeek } from 'date-fns'
+import sequelize from '../../connection/connection.js'
 
 class RecommendBookController {
     async recommendBooks(req, res) {
@@ -118,6 +126,86 @@ class RecommendBookController {
         } catch (error) {
             console.error('Lỗi khi lấy gợi ý sách:', error)
             res.status(500).json({ message: 'Lỗi khi lấy gợi ý sách', error })
+        }
+    }
+
+    async getMostReadBooksOfTheWeek(req, res) {
+        try {
+            // Xác định ngày bắt đầu và kết thúc tuần hiện tại
+            const startDate = startOfWeek(new Date(), { weekStartsOn: 1 }) // Thứ Hai
+            const endDate = endOfWeek(new Date(), { weekStartsOn: 1 }) // Chủ Nhật
+
+            // Truy vấn để tìm 10 cuốn sách được đọc nhiều nhất trong tuần
+            const mostReadBooks = await BookReader.findAll({
+                attributes: [
+                    'bookId',
+                    [
+                        sequelize.fn('SUM', sequelize.col('readCount')),
+                        'totalReadCount',
+                    ], // Tổng số lần đọc
+                ],
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate], // Lọc theo tuần hiện tại
+                    },
+                },
+                group: ['bookId'], // Gom nhóm theo `bookId`
+                order: [[sequelize.literal('totalReadCount'), 'DESC']], // Sắp xếp theo tổng số lần đọc giảm dần
+                limit: 10, // Lấy 10 bản ghi đầu tiên
+            })
+
+            // Kiểm tra nếu không có sách nào được đọc
+            if (!mostReadBooks.length) {
+                return res.status(404).json({
+                    message: 'Không có sách nào được đọc trong tuần này.',
+                })
+            }
+
+            // Lấy thông tin chi tiết của từng sách
+            const bookDetails = await Promise.all(
+                mostReadBooks.map(async (record) => {
+                    const book = await Book.findOne({
+                        where: { bookId: record.bookId },
+                        attributes: [
+                            'bookId',
+                            'bookName',
+                            'imageUrl',
+                            'country',
+                            'author',
+                        ],
+                        include: [
+                            {
+                                model: Category,
+                                as: 'categories', // Đảm bảo tên alias trùng với tên alias trong định nghĩa model
+                                through: { attributes: [] },
+                            },
+                        ],
+                    })
+                    return {
+                        book,
+                        totalReadCount: parseInt(
+                            record.get('totalReadCount'),
+                            10
+                        ), // Tổng số lần đọc
+                    }
+                })
+            )
+
+            // Loại bỏ sách không tồn tại trong bảng Book
+            const validBooks = bookDetails.filter((item) => item.book)
+
+            // Trả về kết quả
+            res.status(200).json({
+                message:
+                    'Danh sách các cuốn sách được đọc nhiều nhất trong tuần.',
+                books: validBooks,
+            })
+        } catch (error) {
+            console.error('Lỗi khi lấy sách được đọc nhiều nhất:', error)
+            res.status(500).json({
+                message: 'Lỗi khi lấy sách được đọc nhiều nhất.',
+                error: error.message,
+            })
         }
     }
 }

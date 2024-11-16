@@ -1,32 +1,75 @@
 import { BookReader } from '../models/index.js'
 
 class BookReaderController {
-    async userReader(req, res) {
-        const bookId = req.params.bookId
-        const userId = req.user.userId
+    async recordBookReading(req, res) {
+        const { bookId } = req.params
+        const userId = req.user.userId // Giả sử userId được lấy từ token middleware
 
         try {
-            // Tìm bản ghi dựa trên userId và bookId
-            let bookReader = await BookReader.findOne({
-                where: { userId, bookId },
-            })
-
-            if (bookReader) {
-                // Nếu bản ghi đã tồn tại, tăng readCount lên 1
-                bookReader.readCount += 1
-                await bookReader.save()
-            } else {
-                // Nếu chưa có, tạo mới với readCount = 1
-                bookReader = await BookReader.create({
-                    userId,
-                    bookId,
-                    readCount: 1,
+            if (!bookId) {
+                return res.status(400).json({
+                    message: 'bookId là bắt buộc.',
                 })
             }
 
-            res.status(200).json(bookReader)
+            // Kiểm tra xem bản ghi đã tồn tại cho tuần này hay chưa
+            const currentDate = new Date()
+            const startOfWeekDate = new Date(
+                currentDate.setDate(
+                    currentDate.getDate() - currentDate.getDay() + 1
+                )
+            ) // Thứ Hai tuần hiện tại
+            startOfWeekDate.setHours(0, 0, 0, 0)
+
+            const endOfWeekDate = new Date(
+                currentDate.setDate(
+                    currentDate.getDate() - currentDate.getDay() + 7
+                )
+            ) // Chủ Nhật tuần hiện tại
+            endOfWeekDate.setHours(23, 59, 59, 999)
+
+            const existingRecord = await BookReader.findOne({
+                where: {
+                    userId,
+                    bookId,
+                    createdAt: {
+                        $between: [startOfWeekDate, endOfWeekDate], // Chỉ kiểm tra trong tuần hiện tại
+                    },
+                },
+            })
+
+            if (existingRecord) {
+                // Nếu đã có bản ghi, tăng `readCount` lên 1
+                existingRecord.readCount += 1
+                await existingRecord.save()
+
+                return res.status(200).json({
+                    message: 'Đã cập nhật số lần đọc của sách.',
+                    bookId,
+                    userId,
+                    readCount: existingRecord.readCount,
+                })
+            }
+
+            // Nếu chưa có bản ghi, tạo một bản ghi mới
+            const newRecord = await BookReader.create({
+                userId,
+                bookId,
+                readCount: 1,
+            })
+
+            res.status(201).json({
+                message: 'Đã ghi lại lần đọc đầu tiên của sách.',
+                bookId,
+                userId,
+                readCount: newRecord.readCount,
+            })
         } catch (error) {
-            res.status(500).json({ error: error.message })
+            console.error('Lỗi khi ghi lại sách đã đọc:', error)
+            res.status(500).json({
+                message: 'Lỗi khi ghi lại sách đã đọc.',
+                error: error.message,
+            })
         }
     }
 }
