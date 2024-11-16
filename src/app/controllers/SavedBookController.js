@@ -1,5 +1,6 @@
 import BookSaved from '../models/BookSaved.js'
 import Book from '../models/Book.js'
+import Category from '../models/Category.js'
 
 class SavedBookController {
     // Hàm để lưu sách
@@ -60,12 +61,17 @@ class SavedBookController {
                     {
                         model: Book,
                         required: true,
+                        include: {
+                            model: Category,
+                            as: 'categories',
+                        },
                     },
                 ],
             })
 
             res.status(200).json(savedBooks)
         } catch (error) {
+            console.log(error)
             res.status(500).json({
                 error: 'Có lỗi xảy ra khi lấy sách đã lưu.',
             })

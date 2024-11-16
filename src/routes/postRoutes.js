@@ -16,6 +16,8 @@ const router = express.Router()
 
 router.get('/', PostController.getAllPosts)
 
+router.get('/topic/last-post/:topicId', PostController.getLastPostAndCount)
+
 router.post(
     '/',
     authenticateToken,
@@ -24,7 +26,7 @@ router.post(
     PostController.createPost
 )
 
-router.get('/:userId', PostController.getPostsByUserId)
+router.get('/:topicId', authenticateToken, PostController.getPostsByUserId)
 
 router.get('/topic/:topicId', PostController.getPostsByTopicId)
 

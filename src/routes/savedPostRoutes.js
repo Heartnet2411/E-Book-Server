@@ -11,7 +11,7 @@ router.post('/save', authenticateToken, savedPostController.savePost)
 router.delete('/unsave', authenticateToken, savedPostController.unsavePost)
 
 // Route để lấy tất cả bài viết đã lưu của một người dùng
-router.get('/:userId', authenticateToken, savedPostController.getSavedPosts)
+router.get('/:topicId', authenticateToken, savedPostController.getSavedPosts)
 
 router.get(
     '/savedPosts/:postId',

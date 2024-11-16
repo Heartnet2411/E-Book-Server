@@ -1,5 +1,5 @@
 // controllers/postController.js
-import { Post, User, Topic,Report } from '../models/index.js'
+import { Post, User, Topic, Report } from '../models/index.js'
 
 class PostController {
     // Lấy tất cả các bài viết
@@ -23,11 +23,12 @@ class PostController {
 
     async getPostsByUserId(req, res) {
         try {
-            const { userId } = req.params // Lấy userId từ URL
+            const { topicId } = req.params // Lấy topicId từ URL
+            const userId = req.user.userId // Lấy userId từ token
 
-            // Tìm tất cả bài viết của user với userId
+            // Tìm tất cả bài viết của user với userId và topicId
             const posts = await Post.findAll({
-                where: { userId }, // Điều kiện lọc theo userId
+                where: { userId, topicId }, // Điều kiện lọc theo userId và topicId
                 include: [
                     { model: Topic, as: 'topic' },
                     {
@@ -35,13 +36,9 @@ class PostController {
                         as: 'user',
                         attributes: ['avatar', 'firstname', 'lastname'],
                     },
-                ], // Bao gồm thông tin về topic
+                ], // Bao gồm thông tin về topic và user
+                order: [['createdAt', 'DESC']], // Sắp xếp bài viết theo ngày mới nhất
             })
-            if (!posts) {
-                return res
-                    .status(404)
-                    .json({ message: 'No posts found for this user' })
-            }
 
             res.status(200).json(posts)
         } catch (error) {
@@ -63,14 +60,9 @@ class PostController {
                         as: 'user',
                         attributes: ['avatar', 'firstname', 'lastname'],
                     },
-                ], // Bao gồm thông tin topic
+                ], // Bao gồm thông tin về topic và user
+                order: [['createdAt', 'DESC']], // Sắp xếp bài viết theo ngày mới nhất
             })
-
-            if (!posts) {
-                return res
-                    .status(404)
-                    .json({ message: 'No posts found for this topic' })
-            }
 
             res.status(200).json(posts)
         } catch (error) {
@@ -135,7 +127,7 @@ class PostController {
             await Report.update(
                 { status: 'hidden' },
                 { where: { targetId: postId, targetType: 'post' } }
-            );
+            )
             await post.destroy() // Xóa bài viết
             res.status(204).send() // Trả về 204 No Content
         } catch (error) {
@@ -175,7 +167,44 @@ class PostController {
             res.status(500).json({ error: error.message })
         }
     }
-    
+
+    async getLastPostAndCount(req, res) {
+        const { topicId } = req.params // Lấy topicId từ URL
+
+        try {
+            // Lấy bài post cuối cùng của topic có trạng thái approved
+            const lastPost = await Post.findOne({
+                where: { topicId, state: 'approved' }, // Điều kiện thêm trạng thái approved
+                order: [['createdAt', 'DESC']], // Sắp xếp theo thời gian giảm dần
+                include: [
+                    { model: Topic, as: 'topic' },
+                    {
+                        model: User,
+                        as: 'user',
+                        attributes: ['avatar', 'firstname', 'lastname'],
+                    },
+                ],
+            })
+
+            if (!lastPost) {
+                return res
+                    .status(404)
+                    .json({ message: 'No approved posts found for this topic' })
+            }
+
+            // Lấy tổng số bài post của topic có trạng thái approved
+            const postCount = await Post.count({
+                where: { topicId, state: 'approved' }, // Điều kiện thêm trạng thái approved
+            })
+
+            res.status(200).json({
+                lastPost,
+                postCount,
+            })
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
 }
 
 export default new PostController()

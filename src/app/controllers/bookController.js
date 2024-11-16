@@ -145,7 +145,7 @@ class BookController {
             const {
                 name,
                 page = 1,
-                countries, // Chấp nhận nhiều quốc gia dưới dạng chuỗi phân tách bằng dấu phẩy
+                countries,
                 startYear,
                 endYear,
                 categoryIds,
@@ -191,7 +191,7 @@ class BookController {
                 {
                     model: Category,
                     as: 'categories',
-                    attributes: ['categoryId', 'name'],
+                    attributes: ['name'],
                     where: categoryIds
                         ? { categoryId: { [Op.in]: categoryIds.split(',') } }
                         : undefined,

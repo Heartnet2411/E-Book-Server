@@ -13,6 +13,11 @@ const Topic = sequelize.define(
             type: DataTypes.STRING(255),
             allowNull: false,
         },
+        state: {
+            type: DataTypes.ENUM('pending', 'approved', 'hidden'),
+            allowNull: false,
+            defaultValue: 'pending', // Trạng thái mặc định là "đang chờ kiểm duyệt"
+        },
     },
     {
         timestamps: true,

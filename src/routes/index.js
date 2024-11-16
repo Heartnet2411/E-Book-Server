@@ -10,7 +10,9 @@ import bookRoutes from './bookRoutes.js'
 import bookComment from './bookCommentRoutes.js'
 import savedBook from './savedBookRoutes.js'
 import postComment from './postCommentRoutes.js'
-import reportRoutes from  './reportRoutes.js'
+import reportRoutes from './reportRoutes.js'
+import bookreaderRoutes from './bookReaderRoutes.js'
+import recommendRoutes from './recommendRoutes.js'
 
 function router(app) {
     app.use('/api/user', authRoutes)
@@ -22,6 +24,8 @@ function router(app) {
     app.use('/api/post', postRoutes)
 
     app.use('/api/user', userRoutes)
+
+    app.use('/api/recommend/recommend-book', recommendRoutes)
 
     app.use('/api/post/saved', savedPostRoutes)
 
@@ -36,7 +40,10 @@ function router(app) {
     app.use('/api/book/comments', bookComment)
 
     app.use('/api/book/saved', savedBook)
+
+    app.use('/api/book/book-reader', bookreaderRoutes)
+
     app.use('/api/report', reportRoutes)
 }
 
-export default router   
+export default router

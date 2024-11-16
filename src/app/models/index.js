@@ -113,26 +113,21 @@ Category.belongsToMany(Book, {
 })
 
 // Thiết lập mối quan hệ giữa User và Book thông qua BookComment
-// User có nhiều bình luận trên nhiều sách
 User.hasMany(BookComment, { foreignKey: 'userId', as: 'comments' })
-
-// Book có nhiều bình luận từ nhiều người dùng
 Book.hasMany(BookComment, { foreignKey: 'bookId', as: 'comments' })
-
-// User có nhiều bình luận trên nhiều sách
 User.hasMany(BookReader, { foreignKey: 'userId', as: 'book_reader' })
-
-// Book có nhiều bình luận từ nhiều người dùng
 Book.hasMany(BookReader, { foreignKey: 'bookId', as: 'book_reader' })
+BookReader.belongsTo(User, { foreignKey: 'userId', as: 'user' })
+BookReader.belongsTo(Book, { foreignKey: 'bookId', as: 'book' })
 
 // BookComment thuộc về một User và một Book
 BookComment.belongsTo(User, { foreignKey: 'userId', as: 'user' })
 BookComment.belongsTo(Book, { foreignKey: 'bookId', as: 'book' })
 
-User.hasMany(BookSaved, { foreignKey: 'userId' })
+User.hasMany(BookSaved, { foreignKey: 'userId', as: 'savedBooks' })
 BookSaved.belongsTo(User, { foreignKey: 'userId' })
 
-Book.hasMany(BookSaved, { foreignKey: 'bookId' })
+Book.hasMany(BookSaved, { foreignKey: 'bookId', as: 'savedBooks' })
 BookSaved.belongsTo(Book, { foreignKey: 'bookId' })
 
 // Thiết lập các quan hệ
@@ -173,9 +168,6 @@ User.hasMany(Report, {
 Report.belongsTo(Post, {
     foreignKey: 'targetId',
     constraints: false,
-    // scope: {
-    //     targetType: 'post',
-    // },
 })
 Post.hasMany(Report, {
     foreignKey: 'targetId',

@@ -60,7 +60,7 @@ class SavedPostController {
     // Lấy tất cả bài viết đã lưu của một người dùng
     async getSavedPosts(req, res) {
         const userId = req.user.userId // Giả sử bạn đã xác thực người dùng
-
+        const { topicId } = req.params
         try {
             const savedPosts = await SavedPost.findAll({
                 where: { userId },
@@ -75,6 +75,7 @@ class SavedPostController {
                                 attributes: ['avatar', 'firstname', 'lastname'],
                             },
                         ],
+                        where: { topicId },
                     },
                 ],
             })
@@ -82,6 +83,7 @@ class SavedPostController {
             res.status(200).json(savedPosts)
         } catch (error) {
             res.status(500).json({ error: error.message })
+            console.log(error)
         }
     }
 
