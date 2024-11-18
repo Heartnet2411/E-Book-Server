@@ -11,6 +11,7 @@ const User = sequelize.define(
             primaryKey: true,
         },
         gender: {
+            //male = 1(true); female = 0(false)
             type: DataTypes.BOOLEAN,
         },
         roleId: {
