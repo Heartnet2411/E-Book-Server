@@ -13,6 +13,8 @@ import BookComment from './BookComment.js'
 import BookSaved from './BookSaved.js'
 import PostComment from './PostComment.js'
 import BookReader from './BookReader.js'
+import Bookmark from './Bookmark.js'
+import Highlight from './Highlight.js'
 
 // Thiết lập mối quan hệ một-một
 User.hasOne(RefreshToken, {
@@ -200,6 +202,42 @@ BookComment.hasMany(Report, {
     as: 'bookCommentReports',
     constraints: false,
 })
+// Kết nối Book với Bookmark (một sách có thể có nhiều bookmark)
+Book.hasMany(Bookmark, {
+    foreignKey: 'bookId',
+    as: 'bookmarks',
+})
+Bookmark.belongsTo(Book, {
+    foreignKey: 'bookId',
+    as: 'book',
+})
+// Kết nối User với Bookmark (một người dùng có thể có nhiều bookmark)
+Bookmark.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user',
+})
+User.hasMany(Bookmark, {
+    foreignKey: 'userId',
+    as: 'bookmarks',
+})
+// Highlight
+Book.hasMany(Highlight, {
+    foreignKey: 'bookId',
+    as: 'highlights',
+})
+Highlight.belongsTo(Book, {
+    foreignKey: 'bookId',
+    as: 'book',
+})
+// Kết nối User với Bookmark (một người dùng có thể có nhiều bookmark)
+Highlight.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user',
+})
+User.hasMany(Highlight, {
+    foreignKey: 'userId',
+    as: 'highlights',
+})
 // Xuất ra các models
 export {
     User,
@@ -217,4 +255,6 @@ export {
     PostComment,
     Report,
     BookReader,
+    Bookmark,
+    Highlight,
 }

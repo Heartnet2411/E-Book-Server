@@ -23,5 +23,4 @@ const BookSaved = sequelize.define(
         timestamps: false, // Không sử dụng timestamps
     }
 )
-
 export default BookSaved

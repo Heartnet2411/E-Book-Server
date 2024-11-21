@@ -13,6 +13,8 @@ import postComment from './postCommentRoutes.js'
 import reportRoutes from './reportRoutes.js'
 import bookreaderRoutes from './bookReaderRoutes.js'
 import recommendRoutes from './recommendRoutes.js'
+import bookmarkRoutes from './bookmarkRoutes.js'
+import highlightRoutes from './highlightRoutes.js'
 
 function router(app) {
     app.use('/api/user', authRoutes)
@@ -44,6 +46,8 @@ function router(app) {
     app.use('/api/book/book-reader', bookreaderRoutes)
 
     app.use('/api/report', reportRoutes)
+    app.use('/api/bookmark',bookmarkRoutes)
+    app.use('/api/highlight',highlightRoutes)
 }
 
 export default router
