@@ -32,6 +32,12 @@ router.get('/topic/:topicId', PostController.getPostsByTopicId)
 
 router.put('/:postId', authenticateToken, PostController.updatePost)
 
+router.put(
+    '/user-hidden/:postId',
+    authenticateToken,
+    PostController.hidePostByUser
+)
+
 router.delete('/:postId', authenticateToken, PostController.deletePost)
 
 router.get('/list/:filter', authenticateAdmin, PostController.getPostsByState)

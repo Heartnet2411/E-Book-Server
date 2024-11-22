@@ -1,4 +1,5 @@
 import { User } from '../models/index.js'
+import bcrypt from 'bcryptjs'
 
 class UserController {
     async getUserByID(req, res) {
@@ -112,6 +113,60 @@ class UserController {
         } catch (error) {
             console.error(error)
             return res.status(500).json({ message: 'Server error' })
+        }
+    }
+
+    async changePassword(req, res) {
+        try {
+            const userId = req.user.userId // Lấy userId từ token
+            const { currentPassword, newPassword } = req.body // Lấy dữ liệu từ body
+
+            // Kiểm tra dữ liệu đầu vào
+            if (!currentPassword || !newPassword) {
+                return res.status(400).json({
+                    message: 'Vui lòng nhập đầy đủ thông tin.',
+                })
+            }
+
+            const passwordRegex = /^(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/
+            if (!passwordRegex.test(newPassword)) {
+                return res.status(400).json({
+                    message:
+                        'Mật khẩu mới phải có ít nhất 8 ký tự, bao gồm 1 chữ hoa và 1 số.',
+                })
+            }
+
+            // Lấy thông tin người dùng từ cơ sở dữ liệu
+            const user = await User.findByPk(userId)
+            if (!user) {
+                return res.status(404).json({ message: 'Lỗi xác thực' })
+            }
+
+            // Kiểm tra mật khẩu hiện tại
+            const isPasswordValid = await bcrypt.compare(
+                currentPassword,
+                user.password
+            )
+            if (!isPasswordValid) {
+                return res
+                    .status(401)
+                    .json({ message: 'Mật khẩu hiện tại không đúng.' })
+            }
+
+            // Hash mật khẩu mới
+            const hashedNewPassword = await bcrypt.hash(newPassword, 10)
+
+            // Cập nhật mật khẩu mới
+            user.password = hashedNewPassword
+            await user.save()
+
+            res.status(200).json({ message: 'Password updated successfully.' })
+        } catch (error) {
+            console.error(error)
+            res.status(500).json({
+                message: 'Failed to change password.',
+                error: error.message,
+            })
         }
     }
 }

@@ -32,4 +32,10 @@ router.post(
     userController.uploadBackground
 )
 
+router.post(
+    '/change-password',
+    authenticateToken,
+    userController.changePassword
+)
+
 export default router

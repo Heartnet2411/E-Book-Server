@@ -27,7 +27,7 @@ const Post = sequelize.define(
             allowNull: true,
         },
         state: {
-            type: DataTypes.ENUM('pending', 'approved', 'hidden'),
+            type: DataTypes.ENUM('pending', 'approved', 'hidden', 'userhidden'),
             allowNull: false,
             defaultValue: 'pending', // Trạng thái mặc định là "đang chờ kiểm duyệt"
         },

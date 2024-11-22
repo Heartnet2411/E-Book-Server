@@ -115,6 +115,26 @@ class PostController {
         }
     }
 
+    async hidePostByUser(req, res) {
+        const { postId } = req.params // Lấy postId từ URL
+
+        try {
+            const post = await Post.findByPk(postId)
+            if (!post) {
+                return res.status(404).json({ message: 'Post not found' })
+            }
+
+            post.state = 'userhidden' // Cập nhật tên bài viết
+
+            await post.save() // Lưu thay đổi
+
+            res.status(200).json(post)
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ error: error.message })
+        }
+    }
+
     // Xóa bài viết
     async deletePost(req, res) {
         const { postId } = req.params
