@@ -1,4 +1,4 @@
-import { User, Role, Post } from '../models/index.js'
+import { User, Role, Post, BookComment, PostComment } from '../models/index.js'
 
 class adminController {
     // Hàm gán quyền Admin cho một user
@@ -82,15 +82,81 @@ class adminController {
     }
     async rejectPendingPost(req, res) {
         const { postId } = req.params
+        const { reason } = req.body
         try {
             const post = await Post.findOne({
                 where: { postId },
             })
             post.state = 'hidden'
+            post.hiddenReason = reason
             await post.save()
             res.status(200).json(post)
         } catch (error) {
             res.status(500).json({ error: error.message })
+        }
+    }
+    async getAllComment(req, res) {
+        try {
+            // Lấy các tham số phân trang và sắp xếp từ query
+            // const limit = parseInt(req.query.limit) || 10 // Số bản ghi mỗi trang, mặc định là 10
+            // const page = parseInt(req.query.page) || 1 // Trang hiện tại, mặc định là 1
+            // const offset = (page - 1) * limit // Tính toán offset
+            const sortDirection = req.query.sort || 'DESC' // Hướng sắp xếp: ASC hoặc DESC
+
+            // Lấy bình luận sách
+            const bookComments = await BookComment.findAll({
+                attributes: [
+                    'id',
+                    'content',
+                    'bookId',
+                    'userId',
+                    'createdAt',
+                    [sequelize.literal("'book'"), 'type'],
+                ],
+                // offset,
+                // limit,
+                order: [['createdAt', sortDirection]],
+            })
+
+            // Lấy bình luận bài viết
+            const postComments = await PostComment.findAll({
+                attributes: [
+                    'id',
+                    'content',
+                    'postId',
+                    'userId',
+                    'createdAt',
+                    [sequelize.literal("'post'"), 'type'],
+                ],
+                // offset,
+                // limit,
+                order: [['createdAt', sortDirection]],
+            })
+
+            // Gộp dữ liệu
+            const allComments = [...bookComments, ...postComments]
+
+            // Sắp xếp theo thời gian tạo
+            allComments.sort((a, b) => {
+                const timeA = new Date(a.createdAt)
+                const timeB = new Date(b.createdAt)
+                return sortDirection === 'DESC' ? timeB - timeA : timeA - timeB
+            })
+
+            // Trả về kết quả
+            res.status(200).json({
+                // total: allComments.length,
+                // page,
+                // limit,
+                // data: allComments,
+                allComments
+            })
+        } catch (error) {
+            console.error(error)
+            res.status(500).json({
+                message: 'Lỗi khi lấy danh sách bình luận.',
+                error,
+            })
         }
     }
 }

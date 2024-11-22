@@ -31,6 +31,11 @@ const Post = sequelize.define(
             allowNull: false,
             defaultValue: 'pending', // Trạng thái mặc định là "đang chờ kiểm duyệt"
         },
+        hiddenReason:{
+            type: DataTypes.TEXT,
+            allowNull: true,
+            defaultValue:''
+        }
     },
     {
         timestamps: true,

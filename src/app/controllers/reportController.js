@@ -91,7 +91,14 @@ class reportController {
                     {
                         model: Post,
                         as: 'Post',
-                        include: [{ model: Topic, as: 'topic' }],
+                        include: [
+                            { model: Topic, as: 'topic' },
+                            {
+                                model: User,
+                                as: 'user',
+                                attributes: ['avatar', 'firstname', 'lastname'],
+                            },
+                        ],
                     },
                 ],
             })
@@ -109,10 +116,12 @@ class reportController {
                     title: post?.title,
                     content: post?.content,
                     image: post?.image,
-                    state: post?.state,
+                    // state: post?.state,
                     postCreatedAt: post?.createdAt,
                     postUpdatedAt: post?.updatedAt,
-                    topic: post?.topic, // Giữ nguyên topic
+                    topic: post?.topic,
+                    user: post?.user,
+                    // Giữ nguyên topic
                 }
             })
 
@@ -125,57 +134,98 @@ class reportController {
         }
     }
     async hideReportPost(req, res) {
-        const transaction = await sequelize.transaction();
+        const transaction = await sequelize.transaction()
         try {
-            const { postId } = req.params;
-            
+            const { postId } = req.params
+
             // Kiểm tra xem bài viết có tồn tại không
-            const post = await Post.findByPk(postId, { transaction });
+            const post = await Post.findByPk(postId, { transaction })
             if (!post) {
-                return res.status(404).json({ message: 'Post not found' });
+                return res.status(404).json({ message: 'Post not found' })
             }
-    
+
             // Cập nhật trạng thái bài viết thành 'hidden'
-            post.state = 'hidden';
-            await post.save({ transaction });
-    
+            post.state = 'hidden'
+            await post.save({ transaction })
+
             // Cập nhật trạng thái 'hidden' cho các báo cáo liên quan
             const [updatedReports] = await Report.update(
                 { status: 'hidden' },
                 { where: { targetId: postId, targetType: 'post' }, transaction }
-            );
-    
+            )
+
             // Kiểm tra xem có báo cáo nào được cập nhật không
             if (updatedReports === 0) {
-                return res.status(404).json({ message: 'No reports found for this post' });
+                return res
+                    .status(404)
+                    .json({ message: 'No reports found for this post' })
             }
-    
+
             // Commit giao dịch
-            await transaction.commit();
-            return res.status(200).json({ message: 'Post and related reports have been hidden' });
-    
+            await transaction.commit()
+            return res
+                .status(200)
+                .json({ message: 'Post and related reports have been hidden' })
         } catch (error) {
             // Rollback giao dịch khi có lỗi
-            await transaction.rollback();
-            console.error('Error hiding post and reports:', error);
-            return res.status(500).json({ message: 'An error occurred while hiding the post and reports.' });
+            await transaction.rollback()
+            console.error('Error hiding post and reports:', error)
+            return res.status(500).json({
+                message: 'An error occurred while hiding the post and reports.',
+            })
         }
     }
     async declineHideReportPost(req, res) {
         try {
-            const { postId } = req.params;           
+            const { postId } = req.params
             // Cập nhật trạng thái 'hidden' cho các báo cáo liên quan
-        await Report.update(
+            await Report.update(
                 { status: 'hidden' },
                 { where: { targetId: postId, targetType: 'post' } }
-            );
-            return res.status(200).json({ message: 'Post and related reports have been hidden' });
-    
+            )
+            return res
+                .status(200)
+                .json({ message: 'Post and related reports have been hidden' })
         } catch (error) {
             // Rollback giao dịch khi có lỗi
-            console.error('Error hiding post and reports:', error);
-            return res.status(500).json({ message: 'An error occurred while hiding the post and reports.' });
+            console.error('Error hiding post and reports:', error)
+            return res.status(500).json({
+                message: 'An error occurred while hiding the post and reports.',
+            })
         }
-    }    
+    }
+    async getReasonReportPost(req, res) {
+        try {
+            const { postId } = req.params
+
+            if (!postId) {
+                return res.status(400).json({ message: 'postId is required' })
+            }
+
+            // Truy vấn lấy lý do báo cáo kèm thông tin user
+            const reasons = await Report.findAll({
+                where: { targetType: 'post', targetId: postId },
+                attributes: ['reason', 'createdAt'], // Chỉ lấy các cột cần thiết
+                include: [
+                    {
+                        model: User,
+                        as: 'user', // Alias được định nghĩa trong mô hình
+                        attributes: [
+                            'userId',
+                            'avatar',
+                            'firstname',
+                            'lastname',
+                        ], // Các cột của User
+                    },
+                ],
+            })
+
+            // Trả về dữ liệu đã truy vấn
+            res.status(200).json(reasons)
+        } catch (error) {
+            console.error(error)
+            res.status(500).json({ message: error.message })
+        }
+    }
 }
 export default new reportController()

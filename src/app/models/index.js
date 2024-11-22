@@ -160,7 +160,7 @@ PostComment.belongsTo(PostComment, {
 })
 
 Report.belongsTo(User, {
-    foreignKey: 'userId',
+    foreignKey: 'userId',as: 'user'
 })
 User.hasMany(Report, {
     foreignKey: 'userId',
