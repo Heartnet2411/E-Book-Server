@@ -137,19 +137,7 @@ class PostController {
     async getPostsByState(req, res) {
         const { filter } = req.params
         try {
-            if (filter === 'all') {
-                const posts = await Post.findAll({
-                    include: [
-                        { model: Topic, as: 'topic' },
-                        {
-                            model: User,
-                            as: 'user',
-                            attributes: ['avatar', 'firstname', 'lastname'],
-                        },
-                    ],
-                })
-                res.status(200).json(posts)
-            } else {
+            
                 const posts = await Post.findAll({
                     where: { state: filter },
                     include: [
@@ -160,9 +148,9 @@ class PostController {
                             attributes: ['avatar', 'firstname', 'lastname'],
                         },
                     ],
+                    order: [['createdAt', 'DESC']],
                 })
                 res.status(200).json(posts)
-            }
         } catch (error) {
             res.status(500).json({ error: error.message })
         }

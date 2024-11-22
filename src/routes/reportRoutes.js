@@ -12,4 +12,5 @@ router.delete('/:reportId', authenticateAdmin, reportController.deleteReport); /
 router.get('/post',authenticateAdmin,reportController.getReportedPosts)
 router.post('/hide-post/:postId',authenticateAdmin,reportController.hideReportPost) // ẩn bài viết và báo cáo tương ứng 
 router.put('/decline-hide-post/:postId',authenticateAdmin,reportController.declineHideReportPost) //
+router.get('/get-reason-report/:postId',authenticateAdmin,reportController.getReasonReportPost)
 export default router;
