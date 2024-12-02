@@ -33,7 +33,7 @@ const BookComment = sequelize.define(
         state: {
             type: DataTypes.ENUM('pending', 'approved', 'hidden'),
             allowNull: false,
-            defaultValue: 'pending', // Trạng thái mặc định là "đang chờ kiểm duyệt"
+            defaultValue: 'pending',
         },
     },
     {
