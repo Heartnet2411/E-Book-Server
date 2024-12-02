@@ -9,4 +9,6 @@ router.post(
     BookReaderController.recordBookReading
 )
 
+router.get('/statistic/getBookReadCount', BookReaderController.getBookReadStats)
+
 export default router

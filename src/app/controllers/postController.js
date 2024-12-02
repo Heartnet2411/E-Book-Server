@@ -1,5 +1,6 @@
 // controllers/postController.js
 import { Post, User, Topic, Report } from '../models/index.js'
+import { Op, Sequelize } from 'sequelize'
 
 class PostController {
     // Lấy tất cả các bài viết
@@ -157,20 +158,19 @@ class PostController {
     async getPostsByState(req, res) {
         const { filter } = req.params
         try {
-            
-                const posts = await Post.findAll({
-                    where: { state: filter },
-                    include: [
-                        { model: Topic, as: 'topic' },
-                        {
-                            model: User,
-                            as: 'user',
-                            attributes: ['avatar', 'firstname', 'lastname'],
-                        },
-                    ],
-                    order: [['createdAt', 'DESC']],
-                })
-                res.status(200).json(posts)
+            const posts = await Post.findAll({
+                where: { state: filter },
+                include: [
+                    { model: Topic, as: 'topic' },
+                    {
+                        model: User,
+                        as: 'user',
+                        attributes: ['avatar', 'firstname', 'lastname'],
+                    },
+                ],
+                order: [['createdAt', 'DESC']],
+            })
+            res.status(200).json(posts)
         } catch (error) {
             res.status(500).json({ error: error.message })
         }
@@ -210,6 +210,42 @@ class PostController {
                 postCount,
             })
         } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
+
+    async getPostStats(req, res) {
+        try {
+            const today = Sequelize.fn('CURDATE')
+            const startOfWeek = Sequelize.fn(
+                'DATE_SUB',
+                today,
+                Sequelize.literal('INTERVAL (DAYOFWEEK(today) - 1) DAY')
+            )
+            const startOfMonth = Sequelize.fn('DATE_FORMAT', today, '%Y-%m-01')
+
+            const postStats = await Post.findAll({
+                attributes: [
+                    [Sequelize.fn('DATE', Sequelize.col('createdAt')), 'date'],
+                    [
+                        Sequelize.fn('COUNT', Sequelize.col('postId')),
+                        'postCount',
+                    ],
+                ],
+                group: [Sequelize.fn('DATE', Sequelize.col('createdAt'))],
+                order: [
+                    [Sequelize.fn('DATE', Sequelize.col('createdAt')), 'ASC'],
+                ], // Sử dụng cột đã được nhóm
+                where: {
+                    createdAt: {
+                        [Op.gte]: startOfMonth,
+                    },
+                },
+            })
+
+            res.status(200).json(postStats)
+        } catch (error) {
+            console.log(error)
             res.status(500).json({ error: error.message })
         }
     }

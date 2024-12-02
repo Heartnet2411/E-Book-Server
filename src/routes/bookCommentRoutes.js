@@ -12,5 +12,9 @@ router.delete(
     authenticateToken,
     bookCommentController.deleteComment
 )
+router.get(
+    '/statistic/with-comments-and-ratings',
+    bookCommentController.getBooksWithCommentsAndRatings
+)
 
 export default router

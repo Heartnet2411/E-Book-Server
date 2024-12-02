@@ -1,4 +1,4 @@
-import { PostComment, User } from '../models/index.js'
+import { PostComment, User, Post } from '../models/index.js'
 
 class PostCommentController {
     // Tạo mới một comment
@@ -6,7 +6,17 @@ class PostCommentController {
         const { postId, replyId, content } = req.body
         const userId = req.user.userId // Lấy userId từ token
 
+        if (!postId || !content) {
+            return res
+                .status(400)
+                .json({ error: 'Post ID and content are required' })
+        }
+
         try {
+            const post = await Post.findByPk(postId)
+            if (!post) {
+                return res.status(404).json({ error: 'Post not found' })
+            }
             const newComment = await PostComment.create({
                 postId,
                 userId,

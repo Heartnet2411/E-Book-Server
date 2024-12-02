@@ -1,4 +1,7 @@
-import { BookReader } from '../models/index.js'
+import { BookReader, Book, BookSaved } from '../models/index.js'
+import { startOfWeek, endOfWeek } from 'date-fns'
+import sequelize from '../../connection/connection.js'
+import { Op } from 'sequelize'
 
 class BookReaderController {
     async recordBookReading(req, res) {
@@ -68,6 +71,64 @@ class BookReaderController {
             console.error('Lỗi khi ghi lại sách đã đọc:', error)
             res.status(500).json({
                 message: 'Lỗi khi ghi lại sách đã đọc.',
+                error: error.message,
+            })
+        }
+    }
+
+    async getBookReadStats(req, res) {
+        try {
+            // Xác định ngày bắt đầu và kết thúc tuần hiện tại
+            const startDate = startOfWeek(new Date(), { weekStartsOn: 1 }) // Thứ Hai
+            const endDate = endOfWeek(new Date(), { weekStartsOn: 1 }) // Chủ Nhật
+
+            // Lấy danh sách tất cả sách
+            const allBooks = await Book.findAll({
+                attributes: ['bookId', 'bookName', 'author', 'imageUrl'],
+            })
+
+            // Thêm thống kê cho từng sách
+            const booksWithStats = await Promise.all(
+                allBooks.map(async (book) => {
+                    // Tổng lượt đọc toàn bộ thời gian
+                    const totalReadCount = await BookReader.sum('readCount', {
+                        where: { bookId: book.bookId },
+                    })
+
+                    // Tổng lượt đọc trong tuần hiện tại
+                    const weeklyReadCount = await BookReader.sum('readCount', {
+                        where: {
+                            bookId: book.bookId,
+                            createdAt: {
+                                [Op.between]: [startDate, endDate],
+                            },
+                        },
+                    })
+
+                    // Tổng số lượt lưu sách
+                    const totalSavedCount = await BookSaved.count({
+                        where: { bookId: book.bookId },
+                    })
+
+                    return {
+                        book,
+                        totalReadCount: totalReadCount || 0, // Nếu không có thì trả về 0
+                        weeklyReadCount: weeklyReadCount || 0, // Nếu không có thì trả về 0
+                        totalSavedCount, // Tổng lượt lưu sách
+                    }
+                })
+            )
+
+            // Trả về kết quả
+            res.status(200).json({
+                message:
+                    'Danh sách tất cả sách với thống kê lượt đọc và lưu sách.',
+                books: booksWithStats,
+            })
+        } catch (error) {
+            console.error('Lỗi khi lấy danh sách sách với thống kê:', error)
+            res.status(500).json({
+                message: 'Lỗi khi lấy danh sách sách với thống kê.',
                 error: error.message,
             })
         }

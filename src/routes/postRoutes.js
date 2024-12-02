@@ -42,4 +42,6 @@ router.delete('/:postId', authenticateToken, PostController.deletePost)
 
 router.get('/list/:filter', authenticateAdmin, PostController.getPostsByState)
 
+router.get('/statistic/stats', PostController.getPostStats)
+
 export default router

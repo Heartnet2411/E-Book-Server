@@ -162,6 +162,57 @@ class BookCommentController {
             console.log(error)
         }
     }
+
+    async getBooksWithCommentsAndRatings(req, res) {
+        try {
+            const books = await Book.findAll({
+                attributes: ['bookId', 'bookName', 'author', 'imageUrl'],
+                include: [
+                    {
+                        model: BookComment,
+                        as: 'comments',
+                        include: [
+                            {
+                                model: User,
+                                as: 'user',
+                                attributes: ['firstName', 'lastName', 'avatar'],
+                            },
+                        ],
+                        attributes: [
+                            'commentId',
+                            'comment',
+                            'rating',
+                            'createdAt',
+                        ],
+                    },
+                ],
+            })
+
+            // Tính toán rating trung bình và số lượng bình luận sau khi lấy dữ liệu
+            const processedBooks = books.map((book) => {
+                const ratings = book.comments.map((comment) => comment.rating)
+                const averageRating =
+                    ratings.length > 0
+                        ? (
+                              ratings.reduce((sum, r) => sum + r, 0) /
+                              ratings.length
+                          ).toFixed(1)
+                        : 0
+                const totalComments = book.comments.length
+
+                return {
+                    ...book.toJSON(),
+                    averageRating,
+                    totalComments,
+                }
+            })
+
+            res.status(200).json(processedBooks)
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+            console.error(error)
+        }
+    }
 }
 
 export default new BookCommentController()
