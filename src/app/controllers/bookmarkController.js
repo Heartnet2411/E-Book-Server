@@ -1,4 +1,4 @@
-import Bookmark from '../models/Bookmark.js'
+import { Bookmark } from '../models/index.js'
 
 class BookMarkController {
     async createBookmark(req, res) {

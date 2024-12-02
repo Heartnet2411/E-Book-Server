@@ -1,5 +1,5 @@
-import { User, Role, Post, BookComment, PostComment } from '../models/index.js'
-
+import { User, Role, Post,Book, BookComment, PostComment } from '../models/index.js'
+import sequelize from '../../connection/connection.js'
 class adminController {
     // Hàm gán quyền Admin cho một user
     assignAdminRole = async (req, res) => {
@@ -97,43 +97,80 @@ class adminController {
     }
     async getAllComment(req, res) {
         try {
-            // Lấy các tham số phân trang và sắp xếp từ query
-            // const limit = parseInt(req.query.limit) || 10 // Số bản ghi mỗi trang, mặc định là 10
-            // const page = parseInt(req.query.page) || 1 // Trang hiện tại, mặc định là 1
-            // const offset = (page - 1) * limit // Tính toán offset
             const sortDirection = req.query.sort || 'DESC' // Hướng sắp xếp: ASC hoặc DESC
+            const { filter } = req.params // Lọc loại bình luận
+            const page = parseInt(req.query.page) || 1 // Trang hiện tại, mặc định là 1
+            const pageSize = parseInt(req.query.pageSize) || 10 // Số bản ghi mỗi trang, mặc định là 10
+            const offset = (page - 1) * pageSize
 
-            // Lấy bình luận sách
-            const bookComments = await BookComment.findAll({
-                attributes: [
-                    'id',
-                    'content',
-                    'bookId',
-                    'userId',
-                    'createdAt',
-                    [sequelize.literal("'book'"), 'type'],
-                ],
-                // offset,
-                // limit,
-                order: [['createdAt', sortDirection]],
-            })
+            let bookComments = []
+            let postComments = []
+            let totalCount = 0
 
-            // Lấy bình luận bài viết
-            const postComments = await PostComment.findAll({
-                attributes: [
-                    'id',
-                    'content',
-                    'postId',
-                    'userId',
-                    'createdAt',
-                    [sequelize.literal("'post'"), 'type'],
-                ],
-                // offset,
-                // limit,
-                order: [['createdAt', sortDirection]],
-            })
+            // Lấy bình luận sách nếu không có filter hoặc filter là "book-cmt"
+            if (filter === 'all' || filter === 'book-cmt') {
+                const { count, rows } = await BookComment.findAndCountAll({
+                    attributes: [
+                        'commentId',
+                        'comment',
+                        'bookId',
+                        'userId',
+                        'createdAt',
+                        'state',
+                        [sequelize.literal("'book'"), 'type'], // Thêm cột 'type' với giá trị 'book'
+                    ],
+                    include: [
+                        {
+                            model: Book,
+                            as: 'book',
+                        
+                        },
+                        {
+                            model: User,
+                            as: 'user',
+                            attributes: ['avatar', 'firstname', 'lastname'],
+                        },
+                    ],
+                    order: [['createdAt', sortDirection]],
+                    limit: pageSize,
+                    offset: offset,
+                })
+                bookComments = rows
+                totalCount += count
+            }
 
-            // Gộp dữ liệu
+            // Lấy bình luận bài viết nếu không có filter hoặc filter là "post-cmt"
+            if (filter === 'all' || filter === 'post-cmt') {
+                const { count, rows } = await PostComment.findAndCountAll({
+                    attributes: [
+                        'commentId',
+                        'content',
+                        'postId',
+                        'userId',
+                        'createdAt',
+                        'status',
+                        [sequelize.literal("'post'"), 'type'], // Thêm cột 'type' với giá trị 'post'
+                    ],
+                    include: [
+                        {
+                            model:Post,
+                            as: 'post',
+                        },
+                        {
+                            model: User,
+                            as: 'user',
+                            attributes: ['avatar', 'firstname', 'lastname'],
+                        },
+                    ],
+                    order: [['createdAt', sortDirection]],
+                    limit: pageSize,
+                    offset: offset,
+                })
+                postComments = rows
+                totalCount += count
+            }
+
+            // Gộp tất cả bình luận
             const allComments = [...bookComments, ...postComments]
 
             // Sắp xếp theo thời gian tạo
@@ -142,14 +179,13 @@ class adminController {
                 const timeB = new Date(b.createdAt)
                 return sortDirection === 'DESC' ? timeB - timeA : timeA - timeB
             })
-
+            const paginatedComments = allComments.slice(0, pageSize);
             // Trả về kết quả
             res.status(200).json({
-                // total: allComments.length,
-                // page,
-                // limit,
-                // data: allComments,
-                allComments
+                totalCount, // Tổng số bình luận
+                page,
+                pageSize,
+                allComments:paginatedComments,
             })
         } catch (error) {
             console.error(error)
