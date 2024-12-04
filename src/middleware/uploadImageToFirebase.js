@@ -1,6 +1,43 @@
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { app } from '../utils/firebase.js'
 
+import axios from 'axios'
+
+const storage = getStorage(app)
+
+export const uploadImageFromUrl = async (req, res, next) => {
+    try {
+        const imageUrl = req.body.imageUrl // URL hình ảnh từ client
+        if (!imageUrl) {
+            return res.status(400).json({ message: 'Image URL is required' })
+        }
+
+        // Tải ảnh từ URL
+        const response = await axios.get(imageUrl, {
+            responseType: 'arraybuffer',
+        })
+
+        // Tạo tên file duy nhất
+        const fileName = `images/${Date.now()}_${imageUrl.split('/').pop()}`
+
+        // Upload dữ liệu lên Firebase Storage
+        const storageRef = ref(storage, fileName)
+        const metadata = {
+            contentType: response.headers['content-type'], // Loại file
+        }
+        await uploadBytes(storageRef, Buffer.from(response.data), metadata)
+
+        // Lấy URL truy cập file
+        const downloadUrl = await getDownloadURL(storageRef)
+
+        req.imageUrl = downloadUrl
+        next()
+    } catch (error) {
+        console.error('Error uploading image:', error)
+        return res.status(500).json({ message: 'Error uploading image' })
+    }
+}
+
 export const uploadImageToFirebase = async (req, res, next) => {
     try {
         const storage = getStorage(app)

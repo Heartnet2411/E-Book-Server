@@ -95,6 +95,8 @@ class authController {
         try {
             const { firstName, lastName, email, password } = req.body
 
+            const image = req.imageUrl || null
+
             const user = await User.findOne({ where: { email } })
 
             if (user) {
@@ -109,6 +111,13 @@ class authController {
             const hashedPassword = await bcrypt.hash(password, 10)
             const role = await Role.findOne({ where: { roleName: 'User' } })
 
+            var avatar
+
+            if (!image)
+                avatar =
+                    'https://firebasestorage.googleapis.com/v0/b/datn-ed1fa.appspot.com/o/images%2Fistockphoto-1300845620-612x612.jpg?alt=media&token=d7429bf3-7711-4490-84ea-cf467ca2eb16'
+            avatar = image
+
             // Tạo User với mật khẩu đã mã hóa
             const newUser = await User.create({
                 userId: userID,
@@ -116,6 +125,9 @@ class authController {
                 lastName,
                 email,
                 password: hashedPassword,
+                avatar: avatar,
+                background:
+                    'https://firebasestorage.googleapis.com/v0/b/datn-ed1fa.appspot.com/o/images%2Fc%C3%A1p%20quang_%20(1).jpg?alt=media&token=2347a70b-73e9-4a6c-bed2-8a6040f1bd04',
                 roleId: role.roleId,
             })
 
