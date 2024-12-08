@@ -10,8 +10,10 @@ router.get('/', authenticateAdmin, reportController.getReports); // Lấy tất 
 router.put('/:reportId', authenticateAdmin, reportController.updateReport); // Cập nhật trạng thái báo cáo
 router.delete('/:reportId', authenticateAdmin, reportController.deleteReport); // Xóa báo cáo
 router.get('/post',authenticateAdmin,reportController.getReportedPosts)
+router.get('/comment',authenticateAdmin,reportController.getReportedComments)
 router.post('/hide-post/:postId',authenticateAdmin,reportController.hideReportPost) // ẩn bài viết và báo cáo tương ứng 
 router.put('/decline-hide-post/:postId',authenticateAdmin,reportController.declineHideReportPost) //
 router.get('/get-reason-report/:postId',authenticateAdmin,reportController.getReasonReportPost)
 router.post('/hide-comment/:commentId',authenticateAdmin,reportController.hideReportComment)
+router.put('/decline-hide-comment/:commentId',authenticateAdmin,reportController.declineHideReportComment)
 export default router;

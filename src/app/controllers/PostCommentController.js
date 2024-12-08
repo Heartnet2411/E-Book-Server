@@ -107,6 +107,21 @@ class PostCommentController {
             res.status(500).json({ error: error.message })
         }
     }
+    async deleteCommentByAdmin(req, res) {
+        try {
+            const { commentId } = req.params
+            const comment = await PostComment.findOne({
+                where: {commentId},
+            })
+            if (!comment) {
+                return res.status(404).json({ message: 'Comment not found' })
+            }
+            await comment.destroy()
+            res.status(204).json({ message: 'Comment deleted' })
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
 }
 
 export default new PostCommentController()

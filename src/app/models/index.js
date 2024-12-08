@@ -180,9 +180,6 @@ Post.hasMany(Report, {
 Report.belongsTo(PostComment, {
     foreignKey: 'targetId',
     constraints: false,
-    scope: {
-        targetType: 'post_comment',
-    },
 })
 PostComment.hasMany(Report, {
     foreignKey: 'targetId',
@@ -193,9 +190,6 @@ PostComment.hasMany(Report, {
 Report.belongsTo(BookComment, {
     foreignKey: 'targetId',
     constraints: false,
-    scope: {
-        targetType: 'book_comment',
-    },
 })
 BookComment.hasMany(Report, {
     foreignKey: 'targetId',

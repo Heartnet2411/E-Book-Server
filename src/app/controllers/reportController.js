@@ -237,106 +237,123 @@ class reportController {
     }
     async getReportedComments(req, res) {
         try {
-            // Lấy danh sách báo cáo liên quan đến BookComment
-            const bookCommentReports = await Report.findAll({
-                attributes: [
-                    'targetId',
-                    'status',
-                    [sequelize.fn('COUNT', sequelize.col('reportId')), 'count'], // Đếm số lượng báo cáo
-                ],
-                where: {
-                    targetType: 'book', // Chỉ báo cáo liên quan đến BookComment
-                    status: 'pending', // Trạng thái báo cáo
-                },
-                group: ['targetId', 'status'],
-                include: [
-                    {
-                        model: BookComment,
-                        as: 'bookCommentReports',
-                        include: [
-                            {
-                                model: User,
-                                as: 'user',
-                                attributes: ['avatar', 'firstname', 'lastname'], // Lấy thông tin người dùng
-                            },
-                            {
-                                model: Book,
-                                as: 'book',
-                                attributes: ['title', 'author'], // Lấy thông tin sách
-                            },
-                        ],
-                    },
-                ],
-            })
+            const { filter } = req.query // Lấy filter từ query params
+            let bookCommentReports = []
+            let postCommentReports = []
 
-            // Lấy danh sách báo cáo liên quan đến PostComment
-            const postCommentReports = await Report.findAll({
-                attributes: [
-                    'targetId',
-                    'status',
-                    [sequelize.fn('COUNT', sequelize.col('reportId')), 'count'], // Đếm số lượng báo cáo
-                ],
-                where: {
-                    targetType: 'post', // Chỉ báo cáo liên quan đến PostComment
-                    status: 'pending', // Trạng thái báo cáo
-                },
-                group: ['targetId', 'status'],
-                include: [
-                    {
-                        model: PostComment,
-                        as: 'postCommentReports',
-                        include: [
-                            {
-                                model: User,
-                                as: 'user',
-                                attributes: ['avatar', 'firstname', 'lastname'], // Lấy thông tin người dùng
-                            },
-                            {
-                                model: Post,
-                                as: 'post',
-                                attributes: ['title', 'topicId'], // Lấy thông tin bài viết
-                            },
-                        ],
+            // Lấy báo cáo liên quan đến BookComment nếu filter là 'all' hoặc 'book'
+            if (filter === 'all' || filter === 'book-cmt') {
+                bookCommentReports = await Report.findAll({
+                    attributes: [
+                        'targetId',
+                        'status',
+                        'targetType',
+                        [
+                            sequelize.fn('COUNT', sequelize.col('reportId')),
+                            'count',
+                        ], // Đếm số lượng báo cáo
+                    ],
+                    where: {
+                        targetType: 'book_comment', // Chỉ báo cáo liên quan đến BookComment
+                        status: 'pending', // Trạng thái báo cáo
                     },
-                ],
-            })
+                    group: ['targetId', 'status'],
+                    include: [
+                        {
+                            model: BookComment,
+                            as: 'BookComment', // Alias được định nghĩa trong mô hình
+                            include: [
+                                {
+                                    model: User,
+                                    as: 'user',
+                                    attributes: [
+                                        'avatar',
+                                        'firstname',
+                                        'lastname',
+                                    ], // Lấy thông tin người dùng
+                                },
+                            ],
+                        },
+                    ],
+                })
+            }
+
+            // Lấy báo cáo liên quan đến PostComment nếu filter là 'all' hoặc 'post'
+            if (filter === 'all' || filter === 'post-cmt') {
+                postCommentReports = await Report.findAll({
+                    attributes: [
+                        'targetId',
+                        'status',
+                        'targetType',
+                        [
+                            sequelize.fn('COUNT', sequelize.col('reportId')),
+                            'count',
+                        ], // Đếm số lượng báo cáo
+                    ],
+                    where: {
+                        targetType: 'post_comment', // Chỉ báo cáo liên quan đến PostComment
+                        status: 'pending', // Trạng thái báo cáo
+                    },
+                    group: ['targetId', 'status'],
+                    include: [
+                        {
+                            model: PostComment,
+                            as: 'PostComment',
+                            include: [
+                                {
+                                    model: User,
+                                    as: 'user',
+                                    attributes: [
+                                        'avatar',
+                                        'firstname',
+                                        'lastname',
+                                    ], // Lấy thông tin người dùng
+                                },
+                            ],
+                        },
+                    ],
+                })
+            }
 
             // Xử lý dữ liệu BookComment
             const bookReports = bookCommentReports.map((report) => {
-                const comment = report.BookComment
+                const comment = report.BookComment // Liên kết với BookComment
                 return {
                     count: report.dataValues.count, // Số lượng báo cáo
                     status: report.status,
-                    type: 'book', // Loại bình luận
-                    commentId: comment?.id,
-                    content: comment?.content,
+                    type: report.targetType,
+                    commentId: report?.targetId,
+                    comment: comment?.comment,
                     commentCreatedAt: comment?.createdAt,
                     commentUpdatedAt: comment?.updatedAt,
                     user: comment?.user,
-                    book: comment?.book, // Thông tin sách
-                    post: null, // Không có thông tin bài viết
                 }
             })
 
             // Xử lý dữ liệu PostComment
             const postReports = postCommentReports.map((report) => {
-                const comment = report.PostComment
+                const comment = report.PostComment // Liên kết với PostComment
                 return {
                     count: report.dataValues.count, // Số lượng báo cáo
                     status: report.status,
-                    type: 'post', // Loại bình luận
-                    commentId: comment?.id,
+                    type: report.targetType,
+                    commentId: report?.targetId,
                     content: comment?.content,
                     commentCreatedAt: comment?.createdAt,
                     commentUpdatedAt: comment?.updatedAt,
                     user: comment?.user,
-                    book: null, // Không có thông tin sách
-                    post: comment?.post, // Thông tin bài viết
                 }
             })
 
-            // Gộp dữ liệu từ hai loại bình luận
-            const reportedComments = [...bookReports, ...postReports]
+            // Gộp dữ liệu từ hai loại bình luận nếu filter là 'all'
+            let reportedComments = []
+            if (filter === 'all') {
+                reportedComments = [...bookReports, ...postReports]
+            } else if (filter === 'book-cmt') {
+                reportedComments = bookReports
+            } else if (filter === 'post-cmt') {
+                reportedComments = postReports
+            }
 
             // Trả về dữ liệu đã xử lý
             res.status(200).json(reportedComments)
@@ -346,117 +363,7 @@ class reportController {
             })
         }
     }
-    async getReportedComments(req, res) {
-        try {
-            // Lấy danh sách báo cáo liên quan đến BookComment
-            const bookCommentReports = await Report.findAll({
-                attributes: [
-                    'targetId',
-                    'status',
-                    [sequelize.fn('COUNT', sequelize.col('reportId')), 'count'], // Đếm số lượng báo cáo
-                ],
-                where: {
-                    targetType: 'book-comment', // Chỉ báo cáo liên quan đến BookComment
-                    status: 'pending', // Trạng thái báo cáo
-                },
-                group: ['targetId', 'status'],
-                include: [
-                    {
-                        model: BookComment,
-                        as: 'BookComment',
-                        include: [
-                            {
-                                model: User,
-                                as: 'user',
-                                attributes: ['avatar', 'firstname', 'lastname'], // Lấy thông tin người dùng
-                            },
-                            {
-                                model: Book,
-                                as: 'book',
-                                attributes: ['title', 'author'], // Lấy thông tin sách
-                            },
-                        ],
-                    },
-                ],
-            })
 
-            // Lấy danh sách báo cáo liên quan đến PostComment
-            const postCommentReports = await Report.findAll({
-                attributes: [
-                    'targetId',
-                    'status',
-                    [sequelize.fn('COUNT', sequelize.col('reportId')), 'count'], // Đếm số lượng báo cáo
-                ],
-                where: {
-                    targetType: 'post-comment', // Chỉ báo cáo liên quan đến PostComment
-                    status: 'pending', // Trạng thái báo cáo
-                },
-                group: ['targetId', 'status'],
-                include: [
-                    {
-                        model: PostComment,
-                        as: 'PostComment',
-                        include: [
-                            {
-                                model: User,
-                                as: 'user',
-                                attributes: ['avatar', 'firstname', 'lastname'], // Lấy thông tin người dùng
-                            },
-                            {
-                                model: Post,
-                                as: 'post',
-                                attributes: ['title', 'topicId'], // Lấy thông tin bài viết
-                            },
-                        ],
-                    },
-                ],
-            })
-
-            // Xử lý dữ liệu BookComment
-            const bookReports = bookCommentReports.map((report) => {
-                const comment = report.BookComment
-                return {
-                    count: report.dataValues.count, // Số lượng báo cáo
-                    status: report.status,
-                    type: 'book', // Loại bình luận
-                    commentId: comment?.id,
-                    content: comment?.content,
-                    commentCreatedAt: comment?.createdAt,
-                    commentUpdatedAt: comment?.updatedAt,
-                    user: comment?.user,
-                    book: comment?.book, // Thông tin sách
-                    post: null, // Không có thông tin bài viết
-                }
-            })
-
-            // Xử lý dữ liệu PostComment
-            const postReports = postCommentReports.map((report) => {
-                const comment = report.PostComment
-                return {
-                    count: report.dataValues.count, // Số lượng báo cáo
-                    status: report.status,
-                    type: 'post', // Loại bình luận
-                    commentId: comment?.id,
-                    content: comment?.content,
-                    commentCreatedAt: comment?.createdAt,
-                    commentUpdatedAt: comment?.updatedAt,
-                    user: comment?.user,
-                    book: null, // Không có thông tin sách
-                    post: comment?.post, // Thông tin bài viết
-                }
-            })
-
-            // Gộp dữ liệu từ hai loại bình luận
-            const reportedComments = [...bookReports, ...postReports]
-
-            // Trả về dữ liệu đã xử lý
-            res.status(200).json(reportedComments)
-        } catch (error) {
-            res.status(500).json({
-                message: error.message,
-            })
-        }
-    }
     async hideReportComment(req, res) {
         const transaction = await sequelize.transaction()
         const { commentId } = req.params
@@ -472,6 +379,10 @@ class reportController {
 
             // Cập nhật trạng thái ẩn (ví dụ: `status = 'hidden'`)
             await comment.update({ status: false }, { transaction })
+            const [updatedReports] = await Report.update(
+                { status: 'hidden' },
+                { where: { targetId: commentId}, transaction }
+            )
 
             // Lưu thay đổi và trả về kết quả
             await transaction.commit()
@@ -484,6 +395,25 @@ class reportController {
             await transaction.rollback()
             console.error(error)
             res.status(500).json({ message: 'Failed to hide comment', error })
+        }
+    }
+    async declineHideReportComment(req, res) {
+        try {
+            const { commentId } = req.params
+            // Cập nhật trạng thái 'hidden' cho các báo cáo liên quan
+            await Report.update(
+                { status: 'hidden' },
+                { where: { targetId: commentId } }
+            )
+            return res
+                .status(200)
+                .json({ message: 'Comment and related reports have been hidden' })
+        } catch (error) {
+            // Rollback giao dịch khi có lỗi
+            console.error('Error hiding comment and reports:', error)
+            return res.status(500).json({
+                message: 'An error occurred while hiding the comment and reports.',
+            })
         }
     }
 }
