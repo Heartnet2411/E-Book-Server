@@ -1,4 +1,12 @@
-import { Report, Post, Topic, User,Book,BookComment,PostComment } from '../models/index.js' // Đường dẫn đến file model của bạn
+import {
+    Report,
+    Post,
+    Topic,
+    User,
+    Book,
+    BookComment,
+    PostComment,
+} from '../models/index.js' // Đường dẫn đến file model của bạn
 import sequelize from '../../connection/connection.js'
 class reportController {
     // Tạo báo cáo mới
@@ -259,8 +267,8 @@ class reportController {
                         ],
                     },
                 ],
-            });
-    
+            })
+
             // Lấy danh sách báo cáo liên quan đến PostComment
             const postCommentReports = await Report.findAll({
                 attributes: [
@@ -291,11 +299,11 @@ class reportController {
                         ],
                     },
                 ],
-            });
-    
+            })
+
             // Xử lý dữ liệu BookComment
             const bookReports = bookCommentReports.map((report) => {
-                const comment = report.BookComment;
+                const comment = report.BookComment
                 return {
                     count: report.dataValues.count, // Số lượng báo cáo
                     status: report.status,
@@ -307,12 +315,12 @@ class reportController {
                     user: comment?.user,
                     book: comment?.book, // Thông tin sách
                     post: null, // Không có thông tin bài viết
-                };
-            });
-    
+                }
+            })
+
             // Xử lý dữ liệu PostComment
             const postReports = postCommentReports.map((report) => {
-                const comment = report.PostComment;
+                const comment = report.PostComment
                 return {
                     count: report.dataValues.count, // Số lượng báo cáo
                     status: report.status,
@@ -324,18 +332,18 @@ class reportController {
                     user: comment?.user,
                     book: null, // Không có thông tin sách
                     post: comment?.post, // Thông tin bài viết
-                };
-            });
-    
+                }
+            })
+
             // Gộp dữ liệu từ hai loại bình luận
-            const reportedComments = [...bookReports, ...postReports];
-    
+            const reportedComments = [...bookReports, ...postReports]
+
             // Trả về dữ liệu đã xử lý
-            res.status(200).json(reportedComments);
+            res.status(200).json(reportedComments)
         } catch (error) {
             res.status(500).json({
                 message: error.message,
-            });
+            })
         }
     }
     async getReportedComments(req, res) {
@@ -370,8 +378,8 @@ class reportController {
                         ],
                     },
                 ],
-            });
-    
+            })
+
             // Lấy danh sách báo cáo liên quan đến PostComment
             const postCommentReports = await Report.findAll({
                 attributes: [
@@ -402,11 +410,11 @@ class reportController {
                         ],
                     },
                 ],
-            });
-    
+            })
+
             // Xử lý dữ liệu BookComment
             const bookReports = bookCommentReports.map((report) => {
-                const comment = report.BookComment;
+                const comment = report.BookComment
                 return {
                     count: report.dataValues.count, // Số lượng báo cáo
                     status: report.status,
@@ -418,12 +426,12 @@ class reportController {
                     user: comment?.user,
                     book: comment?.book, // Thông tin sách
                     post: null, // Không có thông tin bài viết
-                };
-            });
-    
+                }
+            })
+
             // Xử lý dữ liệu PostComment
             const postReports = postCommentReports.map((report) => {
-                const comment = report.PostComment;
+                const comment = report.PostComment
                 return {
                     count: report.dataValues.count, // Số lượng báo cáo
                     status: report.status,
@@ -435,20 +443,48 @@ class reportController {
                     user: comment?.user,
                     book: null, // Không có thông tin sách
                     post: comment?.post, // Thông tin bài viết
-                };
-            });
-    
+                }
+            })
+
             // Gộp dữ liệu từ hai loại bình luận
-            const reportedComments = [...bookReports, ...postReports];
-    
+            const reportedComments = [...bookReports, ...postReports]
+
             // Trả về dữ liệu đã xử lý
-            res.status(200).json(reportedComments);
+            res.status(200).json(reportedComments)
         } catch (error) {
             res.status(500).json({
                 message: error.message,
-            });
+            })
         }
     }
-s        
+    async hideReportComment(req, res) {
+        const transaction = await sequelize.transaction()
+        const { commentId } = req.params
+        try {
+            let comment = await BookComment.findOne({ where: { commentId } })
+            let table = 'BookComment' // Đặt bảng mặc định
+
+            if (!comment) {
+                // Nếu không tìm thấy, tìm trong bảng PostComment
+                comment = await PostComment.findOne({ where: { commentId } })
+                table = 'PostComment'
+            }
+
+            // Cập nhật trạng thái ẩn (ví dụ: `status = 'hidden'`)
+            await comment.update({ status: false }, { transaction })
+
+            // Lưu thay đổi và trả về kết quả
+            await transaction.commit()
+            res.status(200).json({
+                message: `Comment hidden successfully in ${table}`,
+                commentId,
+            })
+        } catch (error) {
+            // Rollback transaction nếu có lỗi
+            await transaction.rollback()
+            console.error(error)
+            res.status(500).json({ message: 'Failed to hide comment', error })
+        }
+    }
 }
 export default new reportController()

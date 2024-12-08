@@ -30,10 +30,10 @@ const BookComment = sequelize.define(
             allowNull: false,
             defaultValue: DataTypes.UUIDV4,
         },
-        state: {
-            type: DataTypes.ENUM('pending', 'approved', 'hidden'),
+        status: {
+            type: DataTypes.BOOLEAN,
             allowNull: false,
-            defaultValue: 'pending',
+            defaultValue: true,
         },
     },
     {
