@@ -14,9 +14,9 @@ class TopicController {
 
     // Tạo topic mới
     async createTopic(req, res) {
-        const { name } = req.body
+        const { name,userId } = req.body
         try {
-            const newTopic = await Topic.create({ name })
+            const newTopic = await Topic.create({ name,userId })
             res.status(201).json(newTopic)
         } catch (error) {
             res.status(500).json({ error: error.message })

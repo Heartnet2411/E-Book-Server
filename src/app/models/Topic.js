@@ -18,6 +18,10 @@ const Topic = sequelize.define(
             allowNull: false,
             defaultValue: 'pending', // Trạng thái mặc định là "đang chờ kiểm duyệt"
         },
+        userId: {
+            type: DataTypes.CHAR(100),
+            allowNull: false,
+        },
     },
     {
         timestamps: true,

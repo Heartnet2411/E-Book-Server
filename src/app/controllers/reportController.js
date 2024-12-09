@@ -212,7 +212,7 @@ class reportController {
 
             // Truy vấn lấy lý do báo cáo kèm thông tin user
             const reasons = await Report.findAll({
-                where: { targetType: 'post', targetId: postId },
+                where: { targetId: postId },
                 attributes: ['reason', 'createdAt'], // Chỉ lấy các cột cần thiết
                 include: [
                     {

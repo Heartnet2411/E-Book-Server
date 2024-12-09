@@ -24,7 +24,16 @@ User.hasOne(RefreshToken, {
 RefreshToken.belongsTo(User, {
     foreignKey: 'userId',
 })
-
+// user - topic
+User.hasMany(Topic, {
+    foreignKey: 'userId',
+    as: 'topics',
+    onDelete: 'SET NULL', // Khi User bị xóa, các Topic vẫn được giữ lại
+})
+Topic.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user',
+})
 // Thiết lập quan hệ một-nhiều với Role
 Role.hasMany(User, {
     foreignKey: 'roleId',
