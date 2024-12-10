@@ -5,6 +5,7 @@ import {
     Book,
     BookComment,
     PostComment,
+    Topic
 } from '../models/index.js'
 import sequelize from '../../connection/connection.js'
 class adminController {
@@ -199,6 +200,135 @@ class adminController {
                 message: 'Lỗi khi lấy danh sách bình luận.',
                 error,
             })
+        }
+    }
+    async getHiddenComment(req, res) {
+        try {
+            const sortDirection = req.query.sort || 'DESC'
+            const { filter } = req.params
+            const page = parseInt(req.query.page) || 1
+            const pageSize = parseInt(req.query.pageSize) || 10
+
+            let bookComments = []
+            let postComments = []
+            let totalCount = 0
+
+            if (filter === 'all' || filter === 'book-cmt') {
+                const { count, rows } = await BookComment.findAndCountAll({
+                    where: {
+                        status: false, // Chỉ lấy bình luận có status = false
+                    },
+                    attributes: [
+                        'commentId',
+                        'comment',
+                        'bookId',
+                        'userId',
+                        'createdAt',
+                        'status',
+                        [sequelize.literal("'book'"), 'type'],
+                    ],
+                    include: [
+                        {
+                            model: Book,
+                            as: 'book',
+                        },
+                        {
+                            model: User,
+                            as: 'user',
+                            attributes: ['avatar', 'firstname', 'lastname'],
+                        },
+                    ],
+                    order: [['createdAt', sortDirection]],
+                })
+                bookComments = rows
+                totalCount += count
+            }
+
+            if (filter === 'all' || filter === 'post-cmt') {
+                const { count, rows } = await PostComment.findAndCountAll({
+                    where: {
+                        status: false, // Chỉ lấy bình luận có status = false
+                    },
+                    attributes: [
+                        'commentId',
+                        'content',
+                        'postId',
+                        'userId',
+                        'createdAt',
+                        'status',
+                        [sequelize.literal("'post'"), 'type'],
+                    ],
+                    include: [
+                        {
+                            model: Post,
+                            as: 'post',
+                        },
+                        {
+                            model: User,
+                            as: 'user',
+                            attributes: ['avatar', 'firstname', 'lastname'],
+                        },
+                    ],
+                    order: [['createdAt', sortDirection]],
+                })
+                postComments = rows
+                totalCount += count
+            }
+
+            const allComments = [...bookComments, ...postComments]
+            allComments.sort((a, b) =>
+                sortDirection === 'DESC'
+                    ? new Date(b.createdAt) - new Date(a.createdAt)
+                    : new Date(a.createdAt) - new Date(b.createdAt)
+            )
+
+            // Phân trang thủ công sau khi gộp
+            const start = (page - 1) * pageSize
+            const end = start + pageSize
+            const paginatedComments = allComments.slice(start, end)
+
+            res.status(200).json({
+                totalCount,
+                page,
+                pageSize,
+                allComments: paginatedComments,
+            })
+        } catch (error) {
+            console.error(error)
+            res.status(500).json({
+                message: 'Lỗi khi lấy danh sách bình luận.',
+                error,
+            })
+        }
+    }
+
+    //=======Topic========================
+    async approvedPendingTopic(req, res) {
+        const { topicId } = req.params
+        try {
+            const topic = await Topic.findOne({
+                where: { topicId },
+            })
+            topic.state = 'approved'
+            await topic.save()
+            res.status(200).json(topic)
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
+    async rejectPendingTopic(req, res) {
+        const { topicId } = req.params
+        const { reason } = req.body
+        try {
+            const topic = await Topic.findOne({
+                where: { topicId },
+            })
+            topic.state = 'hidden'
+            topic.hiddenReason = reason
+            await topic.save()
+            res.status(200).json(topic)
+        } catch (error) {
+            res.status(500).json({ error: error.message })
         }
     }
 }

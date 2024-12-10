@@ -9,4 +9,8 @@ router.post('/post/approved/:postId',authenticateAdmin,adminController.approvedP
 router.put('/post/rejected/:postId',authenticateAdmin,adminController.rejectPendingPost)
 router.get('/users',authenticateAdmin,adminController.getAllUsers)
 router.get('/comments/:filter',authenticateAdmin,adminController.getAllComment)
+router.get('/hide-comments/:filter',authenticateAdmin,adminController.getHiddenComment)
+router.post('/topic/approved/:topicId',authenticateAdmin,adminController.approvedPendingTopic)
+router.put('/topic/rejected/:topicId',authenticateAdmin,adminController.rejectPendingTopic)
+
 export default router

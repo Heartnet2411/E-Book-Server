@@ -1,48 +1,13 @@
 // controllers/topicController.js
-import { Topic, Post } from '../models/index.js'
-import { Sequelize } from 'sequelize'
+import { Topic, User } from '../models/index.js'
 
 class TopicController {
     // Lấy tất cả các topic
     async getAllTopics(req, res) {
         try {
             const topics = await Topic.findAll({
-                attributes: {
-                    include: [
-                        // Đếm số bài viết đã được phê duyệt
-                        [
-                            Sequelize.fn(
-                                'COUNT',
-                                Sequelize.col('posts.postId')
-                            ),
-                            'approvedPostsCount',
-                        ],
-                        // Lấy bài viết cuối cùng dựa trên trạng thái approved
-                        [
-                            Sequelize.literal(`(
-                            SELECT "updatedAt"
-                            FROM "posts" AS "p"
-                            WHERE "p"."topicId" = "Topic"."topicId"
-                            AND "p"."state" = 'approved'
-                            ORDER BY "p"."updatedAt" DESC
-                            LIMIT 1
-                        )`),
-                            'lastActive',
-                        ],
-                    ],
-                },
-                include: {
-                    model: Post,
-                    as: 'posts',
-                    attributes: [], // Không cần chi tiết bài viết trong kết quả chính
-                    where: {
-                        state: 'approved', // Điều kiện chỉ lấy bài viết đã phê duyệt
-                    },
-                    required: false, // Bao gồm cả topic không có bài viết
-                },
-                group: ['Topic.topicId'], // Nhóm theo topic để tính COUNT chính xác
+                where: { state: 'approved' },
             })
-
             res.status(200).json(topics)
         } catch (error) {
             console.log(error)
@@ -52,9 +17,21 @@ class TopicController {
 
     // Tạo topic mới
     async createTopic(req, res) {
-        const { name } = req.body
+        const { name, userId } = req.body
+
         try {
-            const newTopic = await Topic.create({ name })
+            // Kiểm tra nếu chủ đề đã tồn tại
+            const existingTopic = await Topic.findOne({ where: { name } })
+
+            if (existingTopic) {
+                // Nếu chủ đề đã tồn tại, trả về lỗi
+                return res.status(202).json({
+                    error: 'Tên chủ đề đã tồn tại. Vui lòng chọn một tên khác.',
+                })
+            }
+
+            // Tạo chủ đề mới nếu không trùng lặp
+            const newTopic = await Topic.create({ name, userId })
             res.status(201).json(newTopic)
         } catch (error) {
             res.status(500).json({ error: error.message })
@@ -92,7 +69,26 @@ class TopicController {
             }
 
             await topic.destroy()
-            res.status(204).send()
+            res.status(200).send()
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
+    async getTopicByState(req, res) {
+        const { filter } = req.params
+        try {
+            const topics = await Topic.findAll({
+                where: { state: filter },
+                include: [
+                    {
+                        model: User,
+                        as: 'user',
+                        attributes: ['avatar', 'firstname', 'lastname'],
+                    },
+                ],
+                order: [['createdAt', 'DESC']],
+            })
+            res.status(200).json(topics)
         } catch (error) {
             res.status(500).json({ error: error.message })
         }

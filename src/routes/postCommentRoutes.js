@@ -1,6 +1,7 @@
 import express from 'express'
 import PostCommentController from '../app/controllers/PostCommentController.js'
 import authenticateToken from '../middleware/authenticateToken.js'
+import authenticateAdmin from '../middleware/authenticateAdmin.js'
 
 const router = express.Router()
 
@@ -23,5 +24,5 @@ router.delete(
     authenticateToken,
     PostCommentController.deleteComment
 )
-
+router.delete('/delete-by-admin/:commentId',authenticateAdmin,PostCommentController.deleteCommentByAdmin)
 export default router

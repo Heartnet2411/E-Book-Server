@@ -1,6 +1,6 @@
 // routes/postRoutes.js
 import express from 'express'
-import PostController from '../app/controllers/PostController.js'
+import PostController from '../app/controllers/postController.js'
 import authenticateToken from '../middleware/authenticateToken.js'
 import { uploadImageToFirebase } from '../middleware/uploadImageToFirebase.js'
 import multer from 'multer'

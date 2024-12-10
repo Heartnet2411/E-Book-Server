@@ -85,10 +85,9 @@ class BookCommentController {
     async deleteComment(req, res) {
         try {
             const { bookId } = req.params
-            const userId = req.user.userId // Lấy userId từ token
 
             const comment = await BookComment.findOne({
-                where: { userId, bookId },
+                where: { bookId },
             })
             if (!comment) {
                 return res.status(404).json({ message: 'Comment not found' })
@@ -101,6 +100,22 @@ class BookCommentController {
         }
     }
 
+    // Delete commnent by admin
+    async deleteCommentByAdmin(req, res) {
+        try {
+            const {commentId } = req.params
+            const comment = await BookComment.findOne({
+                where: {commentId},
+            })
+            if (!comment) {
+                return res.status(404).json({ message: 'Comment not found' })
+            }
+            await comment.destroy()
+            res.status(204).json({ message: 'Comment deleted' })
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
     async getRatingSummary(req, res) {
         try {
             const { bookId } = req.params
