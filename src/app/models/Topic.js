@@ -22,6 +22,11 @@ const Topic = sequelize.define(
             type: DataTypes.CHAR(100),
             allowNull: false,
         },
+        hiddenReason:{
+            type: DataTypes.TEXT,
+            allowNull: true,
+            defaultValue:''
+        }
     },
     {
         timestamps: true,

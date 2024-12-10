@@ -5,6 +5,7 @@ import {
     Book,
     BookComment,
     PostComment,
+    Topic
 } from '../models/index.js'
 import sequelize from '../../connection/connection.js'
 class adminController {
@@ -298,6 +299,36 @@ class adminController {
                 message: 'Lỗi khi lấy danh sách bình luận.',
                 error,
             })
+        }
+    }
+
+    //=======Topic========================
+    async approvedPendingTopic(req, res) {
+        const { topicId } = req.params
+        try {
+            const topic = await Topic.findOne({
+                where: { topicId },
+            })
+            topic.state = 'approved'
+            await topic.save()
+            res.status(200).json(topic)
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
+    async rejectPendingTopic(req, res) {
+        const { topicId } = req.params
+        const { reason } = req.body
+        try {
+            const topic = await Topic.findOne({
+                where: { topicId },
+            })
+            topic.state = 'hidden'
+            topic.hiddenReason = reason
+            await topic.save()
+            res.status(200).json(topic)
+        } catch (error) {
+            res.status(500).json({ error: error.message })
         }
     }
 }

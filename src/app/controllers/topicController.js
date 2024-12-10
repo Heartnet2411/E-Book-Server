@@ -1,11 +1,13 @@
 // controllers/topicController.js
-import { Topic } from '../models/index.js'
+import { Topic, User } from '../models/index.js'
 
 class TopicController {
     // Lấy tất cả các topic
     async getAllTopics(req, res) {
         try {
-            const topics = await Topic.findAll()
+            const topics = await Topic.findAll({
+                where:{state: 'approved'}
+            })
             res.status(200).json(topics)
         } catch (error) {
             res.status(500).json({ error: error.message })
@@ -14,14 +16,27 @@ class TopicController {
 
     // Tạo topic mới
     async createTopic(req, res) {
-        const { name,userId } = req.body
+        const { name, userId } = req.body;
+    
         try {
-            const newTopic = await Topic.create({ name,userId })
-            res.status(201).json(newTopic)
+            // Kiểm tra nếu chủ đề đã tồn tại
+            const existingTopic = await Topic.findOne({ where: { name } });
+    
+            if (existingTopic) {
+                // Nếu chủ đề đã tồn tại, trả về lỗi
+                return res.status(202).json({
+                    error: 'Tên chủ đề đã tồn tại. Vui lòng chọn một tên khác.',
+                });
+            }
+    
+            // Tạo chủ đề mới nếu không trùng lặp
+            const newTopic = await Topic.create({ name, userId });
+            res.status(201).json(newTopic);
         } catch (error) {
-            res.status(500).json({ error: error.message })
+            res.status(500).json({ error: error.message });
         }
     }
+    
 
     // Sửa topic
     async updateTopic(req, res) {
@@ -54,7 +69,26 @@ class TopicController {
             }
 
             await topic.destroy()
-            res.status(204).send()
+            res.status(200).send()
+        } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
+    async getTopicByState(req, res) {
+        const { filter } = req.params
+        try {
+            const topics = await Topic.findAll({
+                where: { state: filter },
+                include: [
+                    {
+                        model: User,
+                        as: 'user',
+                        attributes: ['avatar', 'firstname', 'lastname'],
+                    },
+                ],
+                order: [['createdAt', 'DESC']],
+            })
+            res.status(200).json(topics)
         } catch (error) {
             res.status(500).json({ error: error.message })
         }
