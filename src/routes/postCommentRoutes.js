@@ -24,5 +24,12 @@ router.delete(
     authenticateToken,
     PostCommentController.deleteComment
 )
-router.delete('/delete-by-admin/:commentId',authenticateAdmin,PostCommentController.deleteCommentByAdmin)
+router.delete(
+    '/delete-by-admin/:commentId',
+    authenticateAdmin,
+    PostCommentController.deleteCommentByAdmin
+)
+
+router.get('/:postId/total', PostCommentController.getTotalCommentsByPost)
+
 export default router

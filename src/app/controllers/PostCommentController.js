@@ -121,7 +121,7 @@ class PostCommentController {
         try {
             const { commentId } = req.params
             const comment = await PostComment.findOne({
-                where: {commentId},
+                where: { commentId },
             })
             if (!comment) {
                 return res.status(404).json({ message: 'Comment not found' })
@@ -129,6 +129,22 @@ class PostCommentController {
             await comment.destroy()
             res.status(204).json({ message: 'Comment deleted' })
         } catch (error) {
+            res.status(500).json({ error: error.message })
+        }
+    }
+
+    async getTotalCommentsByPost(req, res) {
+        const { postId } = req.params
+
+        try {
+            // Đếm tất cả các comment liên quan đến bài viết, bao gồm cả replies
+            const totalComments = await PostComment.count({
+                where: { postId },
+            })
+
+            res.status(200).json({ totalComments })
+        } catch (error) {
+            console.error(error)
             res.status(500).json({ error: error.message })
         }
     }

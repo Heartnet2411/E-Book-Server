@@ -107,6 +107,23 @@ class FavoritePostController {
             res.status(500).json({ error: error.message })
         }
     }
+
+    //get total favorite post
+    async getTotalFavoritesByPostId(req, res) {
+        try {
+            const postId = req.params.postId
+
+            // Đếm số lượt yêu thích
+            const totalFavorites = await FavoritePost.count({
+                where: { postId },
+            })
+
+            res.status(200).json({ totalFavorites })
+        } catch (error) {
+            console.error(error)
+            res.status(500).json({ error: error.message })
+        }
+    }
 }
 
 export default new FavoritePostController()

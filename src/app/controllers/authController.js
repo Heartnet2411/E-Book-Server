@@ -95,8 +95,20 @@ class authController {
         try {
             const { firstName, lastName, email, password } = req.body
 
-            const image = req.imageUrl || null
+            const image = req.imageUrl
 
+            if (!firstName || !lastName || !email) {
+                return res
+                    .status(400)
+                    .json({ message: 'Require valid user info' })
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            if (!emailRegex.test(email)) {
+                return res
+                    .status(400)
+                    .json({ message: 'Invalid email address' })
+            }
             const user = await User.findOne({ where: { email } })
 
             if (user) {
@@ -113,10 +125,10 @@ class authController {
 
             var avatar
 
-            if (!image)
+            if (image === null)
                 avatar =
                     'https://firebasestorage.googleapis.com/v0/b/datn-ed1fa.appspot.com/o/images%2Fistockphoto-1300845620-612x612.jpg?alt=media&token=d7429bf3-7711-4490-84ea-cf467ca2eb16'
-            avatar = image
+            else avatar = image
 
             // Tạo User với mật khẩu đã mã hóa
             const newUser = await User.create({
@@ -137,18 +149,11 @@ class authController {
                 include: 'role',
             })
 
-            // Tạo Refresh Token cho user
-            const refreshToken = await generateRefreshToken(userWithRole)
-
-            // Tạo Access Token cho user
-            const accessToken = generateAccessToken(userWithRole)
-
             res.status(201).json({
                 user: userWithRole,
-                accessToken,
-                refreshToken,
             })
         } catch (error) {
+            console.log(error)
             res.status(500).json({ error: error.message })
         }
     }

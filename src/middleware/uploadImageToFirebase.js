@@ -9,7 +9,9 @@ export const uploadImageFromUrl = async (req, res, next) => {
     try {
         const imageUrl = req.body.imageUrl // URL hình ảnh từ client
         if (!imageUrl) {
-            return res.status(400).json({ message: 'Image URL is required' })
+            req.imageUrl = null
+            next()
+            return
         }
 
         // Tải ảnh từ URL

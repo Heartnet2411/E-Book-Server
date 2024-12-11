@@ -28,4 +28,6 @@ router.get(
     favoritePostController.getFavoritePostByPostId
 )
 
+router.get('/:postId/total', favoritePostController.getTotalFavoritesByPostId)
+
 export default router

@@ -73,13 +73,12 @@ class PostController {
 
     // Tạo bài viết mới
     async createPost(req, res) {
-        const { title, content, topicId } = req.body
+        const { content, topicId } = req.body
         const userId = req.user.userId
         const image = req.imageUrl || null
 
         try {
             const newPost = await Post.create({
-                title,
                 content,
                 image,
                 topicId,
