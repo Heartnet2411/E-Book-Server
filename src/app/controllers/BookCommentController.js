@@ -39,7 +39,9 @@ class BookCommentController {
             const { bookId } = req.params
 
             const comments = await BookComment.findAll({
-                where: { bookId },
+                where: { bookId,
+                    status : true
+                 },
                 include: [
                     {
                         model: User,
