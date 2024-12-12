@@ -28,7 +28,7 @@ const PostComment = sequelize.define(
         status: {
             type: DataTypes.BOOLEAN,
             allowNull: false,
-            defaultValue: false,
+            defaultValue: true,
         },
     },
     { tableName: 'post_comments', timestamps: true }
