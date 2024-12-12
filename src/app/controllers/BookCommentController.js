@@ -7,6 +7,22 @@ class BookCommentController {
             const { bookId, comment, rating } = req.body
             const userId = req.user.userId // Lấy userId từ token
 
+            if (!comment || !rating) {
+                return res
+                    .status(400)
+                    .json({ message: 'Comment and rating is require.' })
+            }
+
+            if (rating > 5 || rating < 1) {
+                return res.status(400).json({ message: '' })
+            }
+
+            const book = await Book.findByPk(bookId)
+
+            if (!book) {
+                return res.status(400).json({ message: 'No book found.' })
+            }
+
             // Kiểm tra nếu user đã có bình luận cho cuốn sách này
             const existingComment = await BookComment.findOne({
                 where: { userId, bookId },
@@ -103,9 +119,9 @@ class BookCommentController {
     // Delete commnent by admin
     async deleteCommentByAdmin(req, res) {
         try {
-            const {commentId } = req.params
+            const { commentId } = req.params
             const comment = await BookComment.findOne({
-                where: {commentId},
+                where: { commentId },
             })
             if (!comment) {
                 return res.status(404).json({ message: 'Comment not found' })
