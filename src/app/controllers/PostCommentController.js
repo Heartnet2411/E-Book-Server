@@ -39,6 +39,7 @@ class PostCommentController {
                 where: {
                     postId,
                     replyId: null, // Chỉ lấy các comment chính
+                    status: true
                 },
                 include: [
                     {
