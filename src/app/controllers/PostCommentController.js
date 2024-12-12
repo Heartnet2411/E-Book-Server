@@ -39,7 +39,7 @@ class PostCommentController {
                 where: {
                     postId,
                     replyId: null, // Chỉ lấy các comment chính
-                    status: true
+                    status: true,
                 },
                 include: [
                     {
@@ -140,7 +140,7 @@ class PostCommentController {
         try {
             // Đếm tất cả các comment liên quan đến bài viết, bao gồm cả replies
             const totalComments = await PostComment.count({
-                where: { postId },
+                where: { postId, status: true },
             })
 
             res.status(200).json({ totalComments })
