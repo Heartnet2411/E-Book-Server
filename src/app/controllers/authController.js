@@ -161,6 +161,7 @@ class authController {
     // Refresh token để tạo Access Token mới
     refreshToken = async (req, res) => {
         const { token } = req.body
+        console.log('tokem', token)
 
         if (!token) {
             return res
@@ -175,8 +176,18 @@ class authController {
             // Kiểm tra token trong cơ sở dữ liệu
             const storedToken = await RefreshToken.findOne({
                 where: { token },
-                include: 'user',
+                include: {
+                    model: User,
+                    include: [
+                        {
+                            model: Role,
+                            as: 'role',
+                        },
+                    ],
+                },
             })
+
+            console.log(storedToken)
 
             if (!storedToken) {
                 return res
@@ -194,13 +205,14 @@ class authController {
             }
 
             // Tạo Access Token mới
-            const user = storedToken.user
+            const user = storedToken.User
             const accessToken = generateAccessToken(user)
 
             res.status(200).json({
                 accessToken,
             })
         } catch (error) {
+            console.log(error)
             res.status(403).json({ message: 'Invalid refresh token', error })
         }
     }
